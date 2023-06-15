@@ -1,0 +1,48 @@
+@startuml DBv01
+!define primary_key(x) <b><color:#b8861b><&key></color> x</b>
+!define foreign_key(x) <b><i><color:#aaaaaa><&key></color> x</i></b>
+!define column(x) <color:#efefef><&media-record></color> x
+!define table(x) entity x << (T, white) >>
+
+table( invoice ) {
+  primary_key( id ): integer <<PK>>
+  column( description ): varchar(255)
+  column( payment_type ): varchar(50)
+  column( created ): datetime
+  column( due_day ): tinyint
+  column( vs ): varchar(50)
+  column( ks ): varchar(50)
+  column( currency ): char(3)
+  column( supplier_name ): varchar(255)
+  column( supplier_company_id ): varchar(255)
+  column( supplier_vat_number ): varchar(255)
+  column( supplier_bank_account_number ): varchar(100)
+  column( supplier_swift ): varchar(100)
+  column( supplier_address_country ): varchar(150)
+  column( supplier_address_street ): varchar(150)
+  column( supplier_address_city ): varchar(100)
+  column( supplier_address_zip_code ): varchar(100)
+  column( subscriber_name ): varchar(255)
+  column( subscriber_company_id ): varchar(255)
+  column( subscriber_vat_number ): varchar(255)
+  column( subscriber_bank_account_number ): varchar(100)
+  column( subscriber_swift ): varchar(100)
+  column( subscriber_address_country ): varchar(150)
+  column( subscriber_address_street ): varchar(150)
+  column( subscriber_address_city ): varchar(100)
+  column( subscriber_address_zip_code ): varchar(100)
+}
+
+table( invoice_item ) {
+  primary_key( id ): integer <<PK>>
+  foreign_key( invoice_id ): integer <<FK>>
+  column( vat ): tinyint
+  column( description ): varchar(255)
+  column( price ): decimal(12,4)
+  column( unit_count ): float
+  column( total_price ): decimal(12,4)
+}
+
+invoice o--* invoice_item: 1:n
+
+@enduml
