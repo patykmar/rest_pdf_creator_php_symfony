@@ -2,7 +2,7 @@
 
 namespace App\Model\Dto;
 
-class InvoiceDto
+final class InvoiceDto
 {
     private CompanyDto $supplier;
     private CompanyDto $subscriber;

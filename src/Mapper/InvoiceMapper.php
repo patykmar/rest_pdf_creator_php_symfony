@@ -2,7 +2,7 @@
 
 namespace App\Mapper;
 
-use App\Entity\InvoiceEntity;
+use App\Entity\Invoice;
 use App\Entity\InvoiceItemEntity;
 use App\Exceptions\InvalidArgumentException;
 use App\Model\Dto\InvoiceDto;
@@ -20,9 +20,9 @@ class InvoiceMapper
     {
     }
 
-    public function toInvoiceEntity(InvoiceDto $invoiceDto): InvoiceEntity
+    public function toInvoiceEntity(InvoiceDto $invoiceDto): Invoice
     {
-        $invoiceEntity = new InvoiceEntity();
+        $invoiceEntity = new Invoice();
         $this->populateInvoiceItemEntity($invoiceDto, $invoiceEntity);
         return $invoiceEntity
             ->setPaymentType($invoiceDto->getPaymentType())
@@ -51,14 +51,35 @@ class InvoiceMapper
             ->setSubscriberAddressZipCode($invoiceDto->getSubscriber()->getAddress()->getZipCode());
     }
 
-    public function toInvoiceItemEntity(InvoiceItemDto $invoiceItemDto): InvoiceItemEntity
+    public function toInvoiceItemEntity(array|InvoiceItemDto $invoiceItemDto): InvoiceItemEntity
     {
+        if (is_array($invoiceItemDto)) {
+            return $this->fromArrayToInvoiceItemEntity($invoiceItemDto);
+        } else {
+            $invoiceItemEntity = new InvoiceItemEntity();
+            return $invoiceItemEntity
+                ->setVat($invoiceItemDto->getVat())
+                ->setItemName($invoiceItemDto->getItemName())
+                ->setPrice($invoiceItemDto->getPrice())
+                ->setUnitCount($invoiceItemDto->getUnitCount());
+        }
+    }
+
+    private function fromArrayToInvoiceItemEntity(array $invoiceItem): InvoiceItemEntity
+    {
+        $validate = array_key_exists('vat', $invoiceItem) &&
+            array_key_exists('itemName', $invoiceItem) &&
+            array_key_exists('price', $invoiceItem) &&
+            array_key_exists('unitCount', $invoiceItem);
+        if (!$validate) {
+            throw new InvalidArgumentException("Invoice item is not valid array");
+        }
         $invoiceItemEntity = new InvoiceItemEntity();
         return $invoiceItemEntity
-            ->setVat($invoiceItemDto->getVat())
-            ->setItemName($invoiceItemDto->getItemName())
-            ->setPrice($invoiceItemDto->getPrice())
-            ->setUnitCount($invoiceItemDto->getUnitCount());
+            ->setVat($invoiceItem['vat'])
+            ->setItemName($invoiceItem['itemName'])
+            ->setPrice($invoiceItem['price'])
+            ->setUnitCount($invoiceItem['unitCount']);
     }
 
     /**
@@ -120,7 +141,7 @@ class InvoiceMapper
         return $dueDay;
     }
 
-    private function populateInvoiceItemEntity(InvoiceDto $invoiceDto, InvoiceEntity $invoiceEntity): void
+    private function populateInvoiceItemEntity(InvoiceDto $invoiceDto, Invoice $invoiceEntity): void
     {
         foreach ($invoiceDto->getInvoiceItems() as $invoiceItemDto) {
             $invoiceItemEntity = $this->toInvoiceItemEntity($invoiceItemDto);

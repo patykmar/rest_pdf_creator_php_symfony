@@ -2,7 +2,7 @@
 
 namespace App\Tests\Mapper;
 
-use App\Entity\InvoiceEntity;
+use App\Entity\Invoice;
 use App\Entity\InvoiceItemEntity;
 use App\Mapper\InvoiceMapper;
 use App\Model\Dto\InvoiceItemDto;
@@ -28,7 +28,7 @@ class InvoiceMapperTest extends TestCase
         $invoiceDto = $this->dtoConstants->getInvoiceDto();
         $result = $this->invoiceMapper->toInvoiceEntity($invoiceDto);
 
-        $this->assertInstanceOf(InvoiceEntity::class, $result);
+        $this->assertInstanceOf(Invoice::class, $result);
         $this->assertSame($invoiceDto->getPaymentType(), $result->getPaymentType());
         $this->assertSame($invoiceDto->getCreated(), date_timestamp_get($result->getCreated()));
         $this->assertSame($invoiceDto->getDueDay(), $result->getDueDay());
@@ -63,6 +63,24 @@ class InvoiceMapperTest extends TestCase
             $this->invoiceItemAssertions($invoiceDto->getInvoiceItems()[$i], $invoiceItemEntities[$i]);
         }
 
+    }
+
+    public function testToInvoiceItemEntityObject(): void
+    {
+        //TODO
+        $this->markTestSkipped("testToInvoiceItemEntityObject will be created");
+    }
+
+    public function testToInvoiceItemEntityArray(): void
+    {
+        //TODO
+        $this->markTestSkipped("testToInvoiceItemEntityArray will be created");
+    }
+
+    public function testToInvoiceItemEntityExceptionTesting(): void
+    {
+        //TODO
+        $this->markTestSkipped("testToInvoiceItemEntityExceptionTesting will be created");
     }
 
     private function invoiceItemAssertions(InvoiceItemDto $invoiceItemDto, InvoiceItemEntity $invoiceItemEntity): void
