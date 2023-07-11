@@ -27,7 +27,7 @@ class InvoiceItemEntity
     private ?float $unitCount = null;
 
     #[ORM\ManyToOne(inversedBy: 'invoiceItemEntities')]
-    private ?InvoiceEntity $invoice = null;
+    private ?Invoice $invoice = null;
 
     public function getId(): ?int
     {
@@ -82,12 +82,12 @@ class InvoiceItemEntity
         return $this;
     }
 
-    public function getInvoice(): InvoiceEntity
+    public function getInvoice(): Invoice
     {
         return $this->invoice;
     }
 
-    public function setInvoice(?InvoiceEntity $invoice): static
+    public function setInvoice(?Invoice $invoice): static
     {
         $this->invoice = $invoice;
 
