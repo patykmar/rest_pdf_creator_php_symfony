@@ -4,8 +4,25 @@
 !define column(x) <color:#efefef><&media-record></color> x
 !define table(x) entity x << (T, white) >>
 
-table( invoice ) {
+table( Company ) {
   primary_key( id ): integer <<PK>>
+  column( name ): varchar(255)
+  column( country ): varchar(255)
+  column( street ): varchar(255)
+  column( city ): varchar(255)
+  column( zip_code ): varchar(10)
+  column( company_id ): varchar(255)
+  column( vat_number ): varchar(255)
+  column( bank_account_number ): varchar(255)
+  column( iban ): varchar(255)
+  column( swift ): varchar(255)
+  column( signature ): text
+}
+
+table( Invoice ) {
+  primary_key( id ): integer <<PK>>
+  foreign_key( supplier_id ): integer <<FK>>
+  foreign_key( subscriber_id ): integer <<FK>>
   column( description ): varchar(255)
   column( payment_type ): varchar(50)
   column( created ): datetime
@@ -13,27 +30,10 @@ table( invoice ) {
   column( vs ): varchar(50)
   column( ks ): varchar(50)
   column( currency ): char(3)
-  column( supplier_name ): varchar(255)
-  column( supplier_company_id ): varchar(255)
-  column( supplier_vat_number ): varchar(255)
-  column( supplier_bank_account_number ): varchar(100)
-  column( supplier_swift ): varchar(100)
-  column( supplier_address_country ): varchar(150)
-  column( supplier_address_street ): varchar(150)
-  column( supplier_address_city ): varchar(100)
-  column( supplier_address_zip_code ): varchar(100)
-  column( subscriber_name ): varchar(255)
-  column( subscriber_company_id ): varchar(255)
-  column( subscriber_vat_number ): varchar(255)
-  column( subscriber_bank_account_number ): varchar(100)
-  column( subscriber_swift ): varchar(100)
-  column( subscriber_address_country ): varchar(150)
-  column( subscriber_address_street ): varchar(150)
-  column( subscriber_address_city ): varchar(100)
-  column( subscriber_address_zip_code ): varchar(100)
 }
+Company o--* Invoice: 1:n
 
-table( invoice_item ) {
+table( Invoice_item ) {
   primary_key( id ): integer <<PK>>
   foreign_key( invoice_id ): integer <<FK>>
   column( vat ): tinyint
@@ -43,6 +43,6 @@ table( invoice_item ) {
   column( total_price ): decimal(12,4)
 }
 
-invoice o--* invoice_item: 1:n
+Invoice o--* Invoice_item: 1:n
 
 @enduml
