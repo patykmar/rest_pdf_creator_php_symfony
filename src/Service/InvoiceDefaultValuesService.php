@@ -10,6 +10,7 @@ class InvoiceDefaultValuesService
     public const DUE_DAY = 14;
     public const CURRENCY = "CZK";
     public const KS = "0308";
+    public const PAYMENT_TYPE = "transfer";
     private InvoiceDefaultValues $invoiceDefaultValues;
 
     public function __construct()
@@ -18,7 +19,8 @@ class InvoiceDefaultValuesService
             self::INVOICE_VS_LENGTH,
             self::DUE_DAY,
             self::CURRENCY,
-            self::KS
+            self::KS,
+            self::PAYMENT_TYPE
         );
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Tests\Dto;
 
+use App\Model\DataDto\InvoiceDataDto;
 use App\Model\Dto\AddressDto;
 use App\Model\Dto\CompanyDto;
 use App\Model\Dto\InvoiceDto;
@@ -11,13 +12,13 @@ class DtoConstants
 {
     private AddressDto $addressDto;
     private CompanyDto $companyDto;
-    private InvoiceDto $invoiceDto;
+    private InvoiceDataDto $invoiceDto;
 
     /** @var AddressDto[] */
     private array $addressesDto = array();
     /** @var CompanyDto[] */
     private array $companiesDto = array();
-    /** @var InvoiceDto[] */
+    /** @var InvoiceDataDto[] */
     private array $invoicesDto = array();
 
     public function __construct()
@@ -31,8 +32,8 @@ class DtoConstants
     {
         array_push($this->addressesDto,
             $this->makeAddressDto("Fiction USA", "Fake street 123", "Springfield", "110 00"),
-            $this->makeAddressDto("Fiction USA", "Fake street 321", "Springfield", "220 00"),
-            $this->makeAddressDto("Fiction USA", "Fake street 231", "Springfield", "330 00"),
+            $this->makeAddressDto("Fiction USA", "Fake street 231", "Springfield", "220 00"),
+            $this->makeAddressDto("Fiction USA", "Fake street 312", "Springfield", "330 00"),
         );
         $this->addressDto = $this->addressesDto[0];
     }
@@ -50,10 +51,10 @@ class DtoConstants
     private function populateInvoiceDto(): void
     {
         array_push($this->invoicesDto,
-            $this->makeInvoiceDto($this->companiesDto[0], $this->companiesDto[1], 'transfer', 12345678, 14, null, null, "eur", $this->populateInvoiceItemDto()),
-            $this->makeInvoiceDto($this->companiesDto[0], $this->companiesDto[1], 'transfer', 12345678, 14, null, null, "CZK", $this->populateInvoiceItemDto()),
-            $this->makeInvoiceDto($this->companiesDto[1], $this->companiesDto[2], 'cache', 12345678, 14, null, null, "USD", $this->populateInvoiceItemDto()),
-            $this->makeInvoiceDto($this->companiesDto[1], $this->companiesDto[2], 'cache', 12345678, 14, null, null, "PLN", $this->populateInvoiceItemDto()),
+            $this->makeInvoiceDataDto($this->companiesDto[0], $this->companiesDto[1], 'transfer', 12345678, 14, null, null, "eur", $this->populateInvoiceItemDto()),
+            $this->makeInvoiceDataDto($this->companiesDto[0], $this->companiesDto[1], 'transfer', 12345678, 14, null, null, "CZK", $this->populateInvoiceItemDto()),
+            $this->makeInvoiceDataDto($this->companiesDto[1], $this->companiesDto[2], 'cache', 12345678, 14, null, null, "USD", $this->populateInvoiceItemDto()),
+            $this->makeInvoiceDataDto($this->companiesDto[1], $this->companiesDto[2], 'cache', 12345678, 14, null, null, "PLN", $this->populateInvoiceItemDto()),
         );
         $this->invoiceDto = $this->invoicesDto[0];
     }
@@ -103,7 +104,7 @@ class DtoConstants
 
     }
 
-    public function makeInvoiceDto(
+    public function makeInvoiceDataDto(
         CompanyDto $supplier,
         CompanyDto $subscriber,
         string     $paymentType,
@@ -113,10 +114,10 @@ class DtoConstants
         ?string    $ks,
         ?string    $currency,
         array      $invoiceItems
-    ): InvoiceDto
+    ): InvoiceDataDto
     {
-        $invoiceDto = new InvoiceDto();
-        return $invoiceDto
+        $invoiceDataDto = new InvoiceDataDto();
+        return $invoiceDataDto
             ->setSupplier($supplier)
             ->setSubscriber($subscriber)
             ->setPaymentType($paymentType)
@@ -126,6 +127,50 @@ class DtoConstants
             ->setKs($ks)
             ->setCurrency($currency)
             ->setInvoiceItems($invoiceItems);
+    }
+
+    public function makeMinimalInvoice(int $supplierId = 1, int $subscriberId = 2): InvoiceDto
+    {
+        $invoiceDto = new InvoiceDto();
+        return $invoiceDto
+            ->setSupplierId($supplierId)
+            ->setSubscriberId($subscriberId);
+    }
+
+    /**
+     * Return {@link InvoiceDto} with fulfilled supplierId and subscriberId and
+     * invoice items.
+     * @param int $supplierId
+     * @param int $subscriberId
+     * @return InvoiceDto
+     */
+    public function makeMinimalInvoiceDtoWithInvoiceItems(int $supplierId = 1, int $subscriberId = 2): InvoiceDto
+    {
+        $invoiceDto = $this->makeMinimalInvoice($supplierId, $subscriberId);
+        return $invoiceDto
+            ->setInvoiceItems($this->populateInvoiceItemDto());
+    }
+
+    public function makeFullInvoiceDto(
+        int    $supplierId,
+        int    $subscriberId,
+        string $paymentType,
+        int    $created,
+        int    $dueDay,
+        string $vs,
+        string $ks,
+        string $currency
+    ): InvoiceDto
+    {
+        $invoiceDto = $this->makeMinimalInvoiceDtoWithInvoiceItems($supplierId, $subscriberId);
+        $invoiceDto
+            ->setPaymentType($paymentType)
+            ->setSupplierId($created)
+            ->setDueDay($dueDay)
+            ->setVs($vs)
+            ->setKs($ks)
+            ->setCurrency($currency);
+        return $invoiceDto;
     }
 
     public function makeInvoiceItemDto(int $vat, string $itemName, float $price, float $unitCount): InvoiceItemDto
@@ -148,7 +193,7 @@ class DtoConstants
         return $this->companyDto;
     }
 
-    public function getInvoiceDto(): InvoiceDto
+    public function getInvoiceDataDto(): InvoiceDataDto
     {
         return $this->invoiceDto;
     }
@@ -170,7 +215,7 @@ class DtoConstants
     }
 
     /**
-     * @return InvoiceDto[]
+     * @return InvoiceDataDto[]
      */
     public function getInvoicesDto(): array
     {

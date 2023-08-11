@@ -5,6 +5,8 @@ namespace App\Mapper;
 use App\Entity\Invoice;
 use App\Entity\InvoiceItemEntity;
 use App\Exceptions\InvalidArgumentException;
+use App\Model\DataDto\InvoiceDataDto;
+use App\Model\Dto\CompanyDto;
 use App\Model\Dto\InvoiceDto;
 use App\Model\Dto\InvoiceItemDto;
 use App\Service\InvoiceDefaultValuesService;
@@ -15,40 +17,25 @@ class InvoiceMapper
     use MapperUtilsTrait;
 
     public function __construct(
+        private readonly CompanyMapper               $companyMapper,
         private readonly InvoiceDefaultValuesService $defaultValuesService
     )
     {
     }
 
-    public function toInvoiceEntity(InvoiceDto $invoiceDto): Invoice
+    public function toEntity(InvoiceDataDto $invoiceDto): Invoice
     {
         $invoiceEntity = new Invoice();
         $this->populateInvoiceItemEntity($invoiceDto, $invoiceEntity);
         return $invoiceEntity
-            ->setPaymentType($invoiceDto->getPaymentType())
+            ->setPaymentType($this->nullSafeSetPaymentType($invoiceDto->getPaymentType()))
             ->setCreated($this->nullSafeSetCreatedTime($invoiceDto->getCreated()))
             ->setDueDay($this->nullSafeDueDay($invoiceDto->getDueDay()))
             ->setVs($this->nullSafeSetVs($invoiceDto->getVs()))
             ->setKs($this->nullSafeSetKs($invoiceDto->getKs()))
             ->setCurrency($this->nullSafeSetCurrency($invoiceDto->getCurrency()))
-            ->setSupplierName($invoiceDto->getSupplier()->getName())
-            ->setSupplierCompanyId($invoiceDto->getSupplier()->getCompanyId())
-            ->setSupplierVatNumber($invoiceDto->getSupplier()->getVatNumber())
-            ->setSupplierBankAccountNumber($invoiceDto->getSupplier()->getBankAccountNumber())
-            ->setSupplierSwift($invoiceDto->getSupplier()->getSwift())
-            ->setSupplierAddressCountry($invoiceDto->getSupplier()->getAddress()->getCountry())
-            ->setSupplierAddressStreet($invoiceDto->getSupplier()->getAddress()->getStreet())
-            ->setSupplierAddressCity($invoiceDto->getSupplier()->getAddress()->getCity())
-            ->setSupplierAddressZipCode($invoiceDto->getSupplier()->getAddress()->getZipCode())
-            ->setSubscriberName($invoiceDto->getSubscriber()->getName())
-            ->setSubscriberCompanyId($invoiceDto->getSubscriber()->getCompanyId())
-            ->setSubscriberVatNumber($invoiceDto->getSubscriber()->getVatNumber())
-            ->setSubscriberBankAccountNumber($invoiceDto->getSubscriber()->getBankAccountNumber())
-            ->setSubscriberSwift($invoiceDto->getSubscriber()->getSwift())
-            ->setSubscriberAddressCountry($invoiceDto->getSubscriber()->getAddress()->getCountry())
-            ->setSubscriberAddressStreet($invoiceDto->getSubscriber()->getAddress()->getStreet())
-            ->setSubscriberAddressCity($invoiceDto->getSubscriber()->getAddress()->getCity())
-            ->setSubscriberAddressZipCode($invoiceDto->getSubscriber()->getAddress()->getZipCode());
+            ->setSupplier($this->companyMapper->toEntity($invoiceDto->getSupplier()))
+            ->setSubscriber($this->companyMapper->toEntity($invoiceDto->getSubscriber()));
     }
 
     public function toInvoiceItemEntity(array|InvoiceItemDto $invoiceItemDto): InvoiceItemEntity
@@ -63,6 +50,20 @@ class InvoiceMapper
                 ->setPrice($invoiceItemDto->getPrice())
                 ->setUnitCount($invoiceItemDto->getUnitCount());
         }
+    }
+
+    public function dtoToDataDto(InvoiceDto $invoiceDto, CompanyDto $supplier, CompanyDto $subscriber): InvoiceDataDto
+    {
+        $invoiceDataDto = new InvoiceDataDto();
+        return $invoiceDataDto
+            ->setSupplier($supplier)
+            ->setSubscriber($subscriber)
+            ->setInvoiceItems($invoiceDto->getInvoiceItems())
+            ->setCreated($invoiceDto->getCreated())
+            ->setDueDay($invoiceDto->getDueDay())
+            ->setVs($invoiceDto->getVs())
+            ->setKs($invoiceDto->getKs())
+            ->setCurrency($invoiceDto->getCurrency());
     }
 
     private function fromArrayToInvoiceItemEntity(array $invoiceItem): InvoiceItemEntity
@@ -141,7 +142,16 @@ class InvoiceMapper
         return $dueDay;
     }
 
-    private function populateInvoiceItemEntity(InvoiceDto $invoiceDto, Invoice $invoiceEntity): void
+
+    private function nullSafeSetPaymentType(?string $getPaymentType): string
+    {
+        if (is_null($getPaymentType)) {
+            return $this->defaultValuesService->getInvoiceDefaultValues()->getPaymentType();
+        }
+        return $getPaymentType;
+    }
+
+    private function populateInvoiceItemEntity(InvoiceDataDto $invoiceDto, Invoice $invoiceEntity): void
     {
         foreach ($invoiceDto->getInvoiceItems() as $invoiceItemDto) {
             $invoiceItemEntity = $this->toInvoiceItemEntity($invoiceItemDto);

@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Model\Dto;
+namespace App\Model\DataDto;
 
-final class InvoiceDto
+use App\Model\Dto\CompanyDto;
+use App\Model\Dto\InvoiceItemDto;
+
+final class InvoiceDataDto
 {
-    private int $supplierId;
-    private int $subscriberId;
-    private string $paymentType;
+    private CompanyDto $supplier;
+    private CompanyDto $subscriber;
+    private ?string $paymentType = null;
     private ?int $created = null;
     private ?int $dueDay = null;
     private ?string $vs = null;
@@ -18,31 +21,26 @@ final class InvoiceDto
      */
     private array $invoiceItems;
 
-    public function __construct()
+    /**
+     * @return CompanyDto
+     */
+    public function getSupplier(): CompanyDto
     {
-        $invoiceItems = array();
+        return $this->supplier;
     }
 
     /**
-     * @return int
+     * @return CompanyDto
      */
-    public function getSupplierId(): int
+    public function getSubscriber(): CompanyDto
     {
-        return $this->supplierId;
+        return $this->subscriber;
     }
 
     /**
-     * @return int
+     * @return string|null
      */
-    public function getSubscriberId(): int
-    {
-        return $this->subscriberId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPaymentType(): string
+    public function getPaymentType(): ?string
     {
         return $this->paymentType;
     }
@@ -88,38 +86,30 @@ final class InvoiceDto
     }
 
     /**
-     * @return array
+     * @param CompanyDto $supplier
+     * @return InvoiceDataDto
      */
-    public function getInvoiceItems(): array
+    public function setSupplier(CompanyDto $supplier): InvoiceDataDto
     {
-        return $this->invoiceItems;
-    }
-
-    /**
-     * @param int $supplierId
-     * @return InvoiceDto
-     */
-    public function setSupplierId(int $supplierId): InvoiceDto
-    {
-        $this->supplierId = $supplierId;
+        $this->supplier = $supplier;
         return $this;
     }
 
     /**
-     * @param int $subscriberId
-     * @return InvoiceDto
+     * @param CompanyDto $subscriber
+     * @return InvoiceDataDto
      */
-    public function setSubscriberId(int $subscriberId): InvoiceDto
+    public function setSubscriber(CompanyDto $subscriber): InvoiceDataDto
     {
-        $this->subscriberId = $subscriberId;
+        $this->subscriber = $subscriber;
         return $this;
     }
 
     /**
-     * @param string $paymentType
-     * @return InvoiceDto
+     * @param string|null $paymentType
+     * @return InvoiceDataDto
      */
-    public function setPaymentType(string $paymentType): InvoiceDto
+    public function setPaymentType(?string $paymentType): InvoiceDataDto
     {
         $this->paymentType = $paymentType;
         return $this;
@@ -127,9 +117,9 @@ final class InvoiceDto
 
     /**
      * @param int|null $created
-     * @return InvoiceDto
+     * @return InvoiceDataDto
      */
-    public function setCreated(?int $created): InvoiceDto
+    public function setCreated(?int $created): InvoiceDataDto
     {
         $this->created = $created;
         return $this;
@@ -137,9 +127,9 @@ final class InvoiceDto
 
     /**
      * @param int|null $dueDay
-     * @return InvoiceDto
+     * @return InvoiceDataDto
      */
-    public function setDueDay(?int $dueDay): InvoiceDto
+    public function setDueDay(?int $dueDay): InvoiceDataDto
     {
         $this->dueDay = $dueDay;
         return $this;
@@ -147,9 +137,9 @@ final class InvoiceDto
 
     /**
      * @param string|null $vs
-     * @return InvoiceDto
+     * @return InvoiceDataDto
      */
-    public function setVs(?string $vs): InvoiceDto
+    public function setVs(?string $vs): InvoiceDataDto
     {
         $this->vs = $vs;
         return $this;
@@ -157,9 +147,9 @@ final class InvoiceDto
 
     /**
      * @param string|null $ks
-     * @return InvoiceDto
+     * @return InvoiceDataDto
      */
-    public function setKs(?string $ks): InvoiceDto
+    public function setKs(?string $ks): InvoiceDataDto
     {
         $this->ks = $ks;
         return $this;
@@ -167,27 +157,29 @@ final class InvoiceDto
 
     /**
      * @param string|null $currency
-     * @return InvoiceDto
+     * @return InvoiceDataDto
      */
-    public function setCurrency(?string $currency): InvoiceDto
+    public function setCurrency(?string $currency): InvoiceDataDto
     {
         $this->currency = $currency;
         return $this;
     }
 
     /**
-     * @param array $invoiceItems
-     * @return InvoiceDto
+     * @return InvoiceItemDto[]
      */
-    public function setInvoiceItems(array $invoiceItems): InvoiceDto
+    public function getInvoiceItems(): array
+    {
+        return $this->invoiceItems;
+    }
+
+    /**
+     * @param InvoiceItemDto[] $invoiceItems
+     */
+    public function setInvoiceItems(array $invoiceItems): InvoiceDataDto
     {
         $this->invoiceItems = $invoiceItems;
         return $this;
-    }
-
-    public function addInvoiceItem(InvoiceItemDto $invoiceItemDto): void
-    {
-        $this->invoiceItems[] = $invoiceItemDto;
     }
 
 }

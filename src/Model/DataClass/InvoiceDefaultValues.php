@@ -10,12 +10,14 @@ class InvoiceDefaultValues
      * @param int $dueDay
      * @param string $currencyCode
      * @param string $ks
+     * @param string $paymentType
      */
     public function __construct(
         private readonly int    $invoiceVsLength,
         private readonly int    $dueDay,
         private readonly string $currencyCode,
-        private readonly string $ks
+        private readonly string $ks,
+        private readonly string $paymentType
     )
     {
     }
@@ -50,6 +52,14 @@ class InvoiceDefaultValues
     public function getCurrencyCode(): string
     {
         return $this->currencyCode;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPaymentType(): string
+    {
+        return $this->paymentType;
     }
 
 }
