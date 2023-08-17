@@ -5,6 +5,7 @@ namespace App\Tests\Mapper;
 use App\Entity\Company;
 use App\Entity\Invoice;
 use App\Entity\InvoiceItemEntity;
+use App\Mapper\AddressMapper;
 use App\Mapper\CompanyMapper;
 use App\Mapper\InvoiceMapper;
 use App\Model\Dto\InvoiceItemDto;
@@ -21,7 +22,7 @@ class InvoiceMapperTest extends TestCase
     {
         parent::setUp();
         $this->invoiceMapper = new InvoiceMapper(
-            new CompanyMapper(),
+            new CompanyMapper(new AddressMapper()),
             new InvoiceDefaultValuesService()
         );
         $this->dtoConstants = new DtoConstants();
