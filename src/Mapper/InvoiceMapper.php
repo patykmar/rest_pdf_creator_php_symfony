@@ -10,6 +10,7 @@ use App\Model\Dto\CompanyDto;
 use App\Model\Dto\InvoiceDto;
 use App\Model\Dto\InvoiceItemDto;
 use App\Service\InvoiceDefaultValuesService;
+use App\Trait\MapperUtilsTrait;
 use DateTimeInterface;
 
 class InvoiceMapper
