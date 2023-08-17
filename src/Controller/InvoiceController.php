@@ -3,13 +3,13 @@
 namespace App\Controller;
 
 use App\Config\JsonSerializer;
+use App\Model\DataDto\InvoiceDataDto;
 use App\Model\Dto\InvoiceDto;
 use App\Service\InvoiceService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/invoice')]
@@ -37,10 +37,30 @@ class InvoiceController extends AbstractController
         ]);
     }
 
+    /**
+     * Method which will save invoice with define subscriber and
+     */
     //TODO consider of using #[MapRequestPayload] instead of $request->getContent() and manual deserialize
     // public function pdfInvoice(#[MapRequestPayload] InvoiceDto $invoiceDto): Response
-    #[Route('', name: 'app_invoice_post', methods: 'POST')]
-    public function pdfInvoice(Request $request): Response
+    #[Route('/data', name: 'app_save_invoice_data_post', methods: 'POST')]
+    public function saveInvoiceData(Request $request): Response
+    {
+        $jsonContent = $request->getContent();
+
+        $invoiceDto = $this->serializer->getJsonReflectionExtractorDeserializer()
+            ->deserialize($jsonContent, InvoiceDataDto::class, 'json');
+
+        $this->invoiceService->saveEntity($invoiceDto);
+
+        return $this->json([
+            "Status" => "OK"
+        ]);
+    }
+
+    //TODO consider of using #[MapRequestPayload] instead of $request->getContent() and manual deserialize
+    // public function pdfInvoice(#[MapRequestPayload] InvoiceDto $invoiceDto): Response
+    #[Route('', name: 'app_save_invoice_post', methods: 'POST')]
+    public function saveInvoice(Request $request): Response
     {
         $jsonContent = $request->getContent();
 

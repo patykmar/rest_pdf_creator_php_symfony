@@ -2,14 +2,39 @@
 
 namespace App\Model\Dto;
 
-class CompanyDto
+use Symfony\Component\Validator\Constraints as Assert;
+
+final class CompanyDto
 {
+    private ?int $id = null;
     private string $name;
     private AddressDto $address;
     private ?string $companyId = null;
+    #[Assert\NotBlank]
     private ?string $vatNumber = null;
+    #[Assert\NotBlank]
     private ?string $bankAccountNumber = null;
+    private ?string $iban = null;
     private ?string $swift = null;
+    private ?string $signature = null;
+
+    /**
+     * @return int|null
+     */
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param int|null $id
+     * @return CompanyDto
+     */
+    public function setId(?int $id): self
+    {
+        $this->id = $id;
+        return $this;
+    }
 
     /**
      * @param string $name
@@ -117,6 +142,42 @@ class CompanyDto
     public function getSwift(): ?string
     {
         return $this->swift;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getIban(): ?string
+    {
+        return $this->iban;
+    }
+
+    /**
+     * @param string|null $iban
+     * @return CompanyDto
+     */
+    public function setIban(?string $iban): self
+    {
+        $this->iban = $iban;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getSignature(): ?string
+    {
+        return $this->signature;
+    }
+
+    /**
+     * @param string|null $signature
+     * @return CompanyDto
+     */
+    public function setSignature(?string $signature): self
+    {
+        $this->signature = $signature;
+        return $this;
     }
 
 }

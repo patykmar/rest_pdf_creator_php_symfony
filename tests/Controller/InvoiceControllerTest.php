@@ -3,7 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\Model\Dto\InvoiceItemDto;
-use App\Repository\InvoiceEntityRepository;
+use App\Repository\InvoiceRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -30,7 +30,7 @@ class InvoiceControllerTest extends WebTestCase
         $client->setServerParameter('CONTENT_TYPE', 'application/json');
         $client->setServerParameter('HTTP_ACCEPT', 'application/json');
 
-        $repository = $this->createMock(InvoiceEntityRepository::class);
+        $repository = $this->createMock(InvoiceRepository::class);
 
         $repository->expects($this->once())
             ->method('save')
@@ -38,10 +38,10 @@ class InvoiceControllerTest extends WebTestCase
 
         $container = static::getContainer();
         // inject mock
-        $container->set(InvoiceEntityRepository::class, $repository);
+        $container->set(InvoiceRepository::class, $repository);
 
         $jsonData = $this->serializer->serialize($this->invoiceZeroVat, 'json');
-        $client->request('POST', '/invoice', [], [], [], $jsonData);
+        $client->request('POST', '/invoice/data', [], [], [], $jsonData);
         $this->assertResponseIsSuccessful();
 
     }
@@ -76,8 +76,8 @@ class InvoiceControllerTest extends WebTestCase
     private function generateCompany(
         string $companyName = "Fake company",
         string $companyId = "123456789",
-        string $vatNumber = null,
         string $bankAccountNumber = null,
+        string $vatNumber = null,
         string $iban = null,
         string $swift = null
     ): array
@@ -125,8 +125,12 @@ class InvoiceControllerTest extends WebTestCase
 
     public function initializedInvoice(): void
     {
+//        $supplier = $this->generateCompany("Fake supplier company", "123456789", "123-123456/1234");
+//        $subscriber = $this->generateCompany("Fake subscriber company", "234567891", "234-234567/2345");
+
         $supplier = $this->generateCompany("Fake supplier company");
         $subscriber = $this->generateCompany("Fake subscriber company");
+
         $invoiceItems = array(
             $this->generateInvoiceItem("Item 1", 0, 1111.1111, 10),
             $this->generateInvoiceItem("Item 2", 0, 9999.9999, 20),

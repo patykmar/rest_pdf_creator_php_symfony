@@ -14,7 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Invoice[]    findAll()
  * @method Invoice[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class InvoiceEntityRepository extends ServiceEntityRepository
+class InvoiceRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Mapper;
+namespace App\Trait;
 
 use DateTime;
 use DateTimeInterface;
