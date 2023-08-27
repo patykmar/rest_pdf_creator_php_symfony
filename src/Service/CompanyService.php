@@ -3,53 +3,36 @@
 namespace App\Service;
 
 use App\Entity\Company;
-use App\Exceptions\NotFoundException;
 use App\Mapper\CompanyMapper;
 use App\Model\Dto\CompanyDto;
 use App\Repository\CompanyRepository;
 
 /**
- * @implements CrudServiceInterface<Company,CompanyDto>
+ * @template-extends AbstractCrudService<Company, CompanyDto, CompanyMapper, CompanyRepository>
  */
-class CompanyService implements CrudServiceInterface
+class CompanyService extends AbstractCrudService implements ICrudService
 {
-    private Company $company;
-
     public function __construct(
         private readonly CompanyMapper     $companyMapper,
         private readonly CompanyRepository $companyRepository
     )
     {
-    }
-
-    public function getOneEntity(int $id): Company
-    {
-        $this->checkId($id);
-        return $this->company;
+        parent::__construct($this->companyMapper, $this->companyRepository);
     }
 
     public function getOneDto(int $id): CompanyDto
     {
-        return $this->mapEntityToDto($this->getOneEntity($id));
+        return $this->companyMapper->toDto($this->getOneEntity($id));
     }
 
-    public function mapEntityToDto(Company $company): CompanyDto
-    {
-        return $this->companyMapper->toDto($company);
-    }
-
-    public function mapDtoToEntity(CompanyDto $companyDto): Company
-    {
-        return $this->companyMapper->toEntity($companyDto);
-    }
-
-    /**
-     * @param CompanyDto $dto
-     * @return CompanyDto
-     */
     public function saveEntity($dto): CompanyDto
     {
-        $this->companyRepository->save($this->mapDtoToEntity($dto));
+        return $this->saveEntityStrict($dto);
+    }
+
+    private function saveEntityStrict(CompanyDto $dto): CompanyDto
+    {
+        $this->companyRepository->save($this->companyMapper->toEntity($dto));
         $criteria = [
             'name' => $dto->getName(),
             'country' => $dto->getAddress()->getCountry(),
@@ -63,7 +46,7 @@ class CompanyService implements CrudServiceInterface
             'swift' => $dto->getSwift(),
         ];
         $company = $this->companyRepository->findOneBy($criteria);
-        return $this->mapEntityToDto($company);
+        return $this->companyMapper->toDto($company);
     }
 
     /**
@@ -73,27 +56,16 @@ class CompanyService implements CrudServiceInterface
      */
     public function editEntity($dto, int $id): CompanyDto
     {
-        $this->checkId($id);
-        $this->company = $this->mapDtoToEntity($dto);
-        $this->company->setId($id);
-        $this->companyRepository->save($this->company);
-        return $this->mapEntityToDto($this->company);
+        return $this->editEntityStrict($dto, $id);
     }
 
-    public function deleteEntity(int $id): void
+    private function editEntityStrict(CompanyDto $dto, int $id): CompanyDto
     {
         $this->checkId($id);
-        $this->companyRepository->remove($this->company, true);
+        $this->entity = $this->companyMapper->toEntity($dto);
+        $this->entity->setId($id);
+        $this->companyRepository->save($this->entity);
+        return $this->companyMapper->toDto($this->entity);
     }
 
-    /**
-     * @throws NotFoundException
-     */
-    private function checkId(int $id): void
-    {
-        $this->company = $this->companyRepository->find($id);
-        if (is_null($this->company)) {
-            throw new NotFoundException(sprintf("Company with id: %d not found", $id));
-        }
-    }
 }

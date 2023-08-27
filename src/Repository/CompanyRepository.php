@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Company;
+use App\Model\LimitResult;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -37,6 +39,18 @@ class CompanyRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    /**
+     * @psalm-return ArrayCollection<Company> returns an array of Company objects
+     */
+    public function findByLimitResult(LimitResult $limitResult): ArrayCollection
+    {
+        return new ArrayCollection($this->createQueryBuilder('c')
+            ->setFirstResult($limitResult->getFirst())
+            ->setMaxResults($limitResult->getMax())
+            ->getQuery()
+            ->getResult());
     }
 
 //    /**

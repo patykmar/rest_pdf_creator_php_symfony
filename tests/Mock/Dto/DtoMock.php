@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Dto;
+namespace App\Tests\Mock\Dto;
 
 use App\Model\DataDto\InvoiceDataDto;
 use App\Model\Dto\AddressDto;
@@ -8,7 +8,7 @@ use App\Model\Dto\CompanyDto;
 use App\Model\Dto\InvoiceDto;
 use App\Model\Dto\InvoiceItemDto;
 
-class DtoConstants
+class DtoMock
 {
     private AddressDto $addressDto;
     private CompanyDto $companyDto;

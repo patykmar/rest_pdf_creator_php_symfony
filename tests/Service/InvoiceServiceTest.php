@@ -12,14 +12,14 @@ use App\Repository\InvoiceRepository;
 use App\Service\CompanyService;
 use App\Service\InvoiceDefaultValuesService;
 use App\Service\InvoiceService;
-use App\Tests\Dto\DtoConstants;
+use App\Tests\Mock\Dto\DtoMock;
 use DateTime;
 use PHPUnit\Framework\TestCase;
 
 class InvoiceServiceTest extends TestCase
 {
 
-    private DtoConstants $dtoConstants;
+    private DtoMock $dtoConstants;
     private InvoiceRepository $invoiceRepository;
     private CompanyService $companyService;
     private InvoiceService $invoiceService;
@@ -28,7 +28,7 @@ class InvoiceServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->dtoConstants = new DtoConstants();
+        $this->dtoConstants = new DtoMock();
 
         $invoiceMapper = new InvoiceMapper(
             new CompanyMapper(new AddressMapper()),

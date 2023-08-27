@@ -3,12 +3,14 @@
 namespace App\Service;
 
 use App\Exceptions\NotFoundException;
+use App\Model\LimitResult;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * @template E of object Entity data model
  * @template D of object DTO data model
  */
-interface CrudServiceInterface
+interface ICrudService
 {
     /**
      * @param int $id
@@ -23,14 +25,20 @@ interface CrudServiceInterface
     public function getOneDto(int $id);
 
     /**
-     * @param D $dto
+     * @param LimitResult $limitResult
+     * @psalm-return ArrayCollection<D>
+     */
+    public function getByLimitResult(LimitResult $limitResult): ArrayCollection;
+
+    /**
+     * @psalm-param D $dto
      * @psalm-return D
      */
     public function saveEntity($dto);
 
     /**
-     * @param D $dto
-     * @param int $id
+     * @psalm-param D $dto
+     * @psalm-param int $id
      * @psalm-return D
      */
     public function editEntity($dto, int $id);

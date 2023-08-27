@@ -10,13 +10,13 @@ use App\Mapper\CompanyMapper;
 use App\Mapper\InvoiceMapper;
 use App\Model\Dto\InvoiceItemDto;
 use App\Service\InvoiceDefaultValuesService;
-use App\Tests\Dto\DtoConstants;
+use App\Tests\Mock\Dto\DtoMock;
 use PHPUnit\Framework\TestCase;
 
 class InvoiceMapperTest extends TestCase
 {
     private InvoiceMapper $invoiceMapper;
-    private DtoConstants $dtoConstants;
+    private DtoMock $dtoConstants;
 
     protected function setUp(): void
     {
@@ -25,7 +25,7 @@ class InvoiceMapperTest extends TestCase
             new CompanyMapper(new AddressMapper()),
             new InvoiceDefaultValuesService()
         );
-        $this->dtoConstants = new DtoConstants();
+        $this->dtoConstants = new DtoMock();
     }
 
     public function testToInvoiceEntity()
