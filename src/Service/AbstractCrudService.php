@@ -50,7 +50,7 @@ class AbstractCrudService implements ICrudService, IMapperService
 
     public function getOneDto(int $id)
     {
-        throw new NotImplementException("Method getOneDto is not implement");
+        return $this->mapper->toDto($this->getOneEntity($id));
     }
 
     public function saveEntity($dto)

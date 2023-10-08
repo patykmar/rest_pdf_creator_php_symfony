@@ -13,20 +13,18 @@ use PHPUnit\Framework\TestCase;
 class CompanyMapperTest extends TestCase
 {
     private EntityMock $entityConstants;
-    private DtoMock $dtoConstants;
     private CompanyMapper $mapper;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->entityConstants = new EntityMock();
-        $this->dtoConstants = new DtoMock();
         $this->mapper = new CompanyMapper(new AddressMapper());
     }
 
     public function testToEntity()
     {
-        $companyDto = $this->dtoConstants->getCompanyDto();
+        $companyDto = DtoMock::getCompanyDto();
         $companyEntity = $this->mapper->toEntity($companyDto);
 
         $this->assertInstanceOf(Company::class, $companyEntity);

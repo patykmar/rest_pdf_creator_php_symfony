@@ -4,7 +4,7 @@ namespace App\Tests\Mapper;
 
 use App\Entity\Company;
 use App\Entity\Invoice;
-use App\Entity\InvoiceItemEntity;
+use App\Entity\InvoiceItem;
 use App\Mapper\AddressMapper;
 use App\Mapper\CompanyMapper;
 use App\Mapper\InvoiceMapper;
@@ -72,7 +72,7 @@ class InvoiceMapperTest extends TestCase
         $this->markTestSkipped("testToInvoiceItemEntityExceptionTesting will be created");
     }
 
-    private function invoiceItemAssertions(InvoiceItemDto $invoiceItemDto, InvoiceItemEntity $invoiceItemEntity): void
+    private function invoiceItemAssertions(InvoiceItemDto $invoiceItemDto, InvoiceItem $invoiceItemEntity): void
     {
         $this->assertSame($invoiceItemDto->getVat(), $invoiceItemEntity->getVat());
         $this->assertSame($invoiceItemDto->getItemName(), $invoiceItemEntity->getItemName());

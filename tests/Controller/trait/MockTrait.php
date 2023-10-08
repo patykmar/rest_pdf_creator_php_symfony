@@ -8,8 +8,7 @@ trait MockTrait
 {
     protected function injectMockToSymfonyContext(string $className, object $mockObject): void
     {
-        $container = static::getContainer();
-        $container->set($className, $mockObject);
+        $this->container->set($className, $mockObject);
     }
 
     protected function expectOnceRunMethodWithAnyParameters(MockObject $mockObject, string $methodName): void

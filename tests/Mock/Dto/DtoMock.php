@@ -7,129 +7,110 @@ use App\Model\Dto\AddressDto;
 use App\Model\Dto\CompanyDto;
 use App\Model\Dto\InvoiceDto;
 use App\Model\Dto\InvoiceItemDto;
+use Doctrine\Common\Collections\ArrayCollection;
 
 class DtoMock
 {
-    private AddressDto $addressDto;
-    private CompanyDto $companyDto;
-    private InvoiceDataDto $invoiceDto;
+    public const COMPANY_COUNT = 20;
+    public const INVOICE_ITEM_COUNT = 10;
+    public const INVOICE_COUNT = 10;
+    public const INVOICE_DUE_DAY = 14;
 
-    /** @var AddressDto[] */
-    private array $addressesDto = array();
-    /** @var CompanyDto[] */
-    private array $companiesDto = array();
-    /** @var InvoiceDataDto[] */
-    private array $invoicesDto = array();
-
-    public function __construct()
+    private static function getPaymentType(int $id): string
     {
-        $this->populateAddressDto();
-        $this->populateCompanyDto();
-        $this->populateInvoiceDto();
+        $paymentType = ['transfer', 'cache'];
+        $idMod = $id % count($paymentType);
+        return $paymentType[$idMod];
     }
 
-    private function populateAddressDto(): void
+    private static function getCurrency(int $id): string
     {
-        array_push($this->addressesDto,
-            $this->makeAddressDto("Fiction USA", "Fake street 123", "Springfield", "110 00"),
-            $this->makeAddressDto("Fiction USA", "Fake street 231", "Springfield", "220 00"),
-            $this->makeAddressDto("Fiction USA", "Fake street 312", "Springfield", "330 00"),
-        );
-        $this->addressDto = $this->addressesDto[0];
+        $currency = ["eur", "CZK", "USD", "PLN"];
+        $idMod = $id % count($currency);
+        return $currency[$idMod];
     }
 
-    private function populateCompanyDto(): void
+
+    private static function generateVs(int $id): string
     {
-        array_push($this->companiesDto,
-            $this->makeCompanyDto("Company name 1", $this->addressesDto[0], "1234567890", null, "1234-567890123/1234", null),
-            $this->makeCompanyDto("Company name 2", $this->addressesDto[1], "2345678901", null, "2345-567890123/1234", null),
-            $this->makeCompanyDto("Company name 3", $this->addressesDto[2], "3456789012", null, "3456-567890123/1234", null),
-        );
-        $this->companyDto = $this->companiesDto[0];
+        return date("Y") . "000" . $id;
     }
 
-    private function populateInvoiceDto(): void
+    private static function generateKs(int $id): string
     {
-        array_push($this->invoicesDto,
-            $this->makeInvoiceDataDto($this->companiesDto[0], $this->companiesDto[1], 'transfer', 12345678, 14, null, null, "eur", $this->populateInvoiceItemDto()),
-            $this->makeInvoiceDataDto($this->companiesDto[0], $this->companiesDto[1], 'transfer', 12345678, 14, null, null, "CZK", $this->populateInvoiceItemDto()),
-            $this->makeInvoiceDataDto($this->companiesDto[1], $this->companiesDto[2], 'cache', 12345678, 14, null, null, "USD", $this->populateInvoiceItemDto()),
-            $this->makeInvoiceDataDto($this->companiesDto[1], $this->companiesDto[2], 'cache', 12345678, 14, null, null, "PLN", $this->populateInvoiceItemDto()),
-        );
-        $this->invoiceDto = $this->invoicesDto[0];
+        return "000" . $id;
+    }
+
+    private static function makeInvoiceDto(int $id): InvoiceDto
+    {
+        $invoiceDto = self::makeMinimalInvoice($id, $id + 1);
+        return $invoiceDto
+            ->setSupplierId($id)
+            ->setSubscriberId($id + 1)
+            ->setPaymentType(self::getPaymentType($id))
+            ->setCreated(123456 + $id * 100)
+            ->setDueDay(self::INVOICE_DUE_DAY)
+            ->setVs(self::generateVs($id))
+            ->setKs(self::generateKs($id))
+            ->setCurrency(self::getCurrency($id))
+            ->setInvoiceItems(self::populateInvoiceItemDto()->toArray());
     }
 
     /**
-     * @return InvoiceItemDto[]
+     * @psalm-return ArrayCollection<InvoiceDto>
      */
-    private function populateInvoiceItemDto(): array
+    private static function populateInvoiceDto(): ArrayCollection
     {
-        // int $vat, string $itemName, float $price, float $unitCount
-        return [
-            $this->makeInvoiceItemDto(0, "Invoice item 01", 12345.1234, 1.0),
-            $this->makeInvoiceItemDto(0, "Invoice item 02", 12345.1234, 1.2),
-            $this->makeInvoiceItemDto(0, "Invoice item 03", 12345.1234, 12.3),
-            $this->makeInvoiceItemDto(0, "Invoice item 04", 12345.1234, 123.4),
-            $this->makeInvoiceItemDto(0, "Invoice item 05", 12345.1234, 123.45)
-        ];
+        $returnInvoices = new ArrayCollection();
+        for ($i = 1; $i <= self::INVOICE_COUNT; $i++) {
+            $returnInvoices->add(self::makeInvoiceDto($i));
+        }
+        return $returnInvoices;
     }
 
-    public function makeAddressDto(string $country, string $street, string $city, string $zipCode): AddressDto
-    {
-        $returnAddressDto = new AddressDto();
-        return $returnAddressDto
-            ->setCountry($country)
-            ->setStreet($street)
-            ->setCity($city)
-            ->setZipCode($zipCode);
-    }
-
-    public function makeCompanyDto(
-        string     $name,
-        AddressDto $addressDto,
-        ?string    $companyId,
-        ?string    $vatNumber,
-        ?string    $bankAccountNumber,
-        ?string    $swift
-    ): CompanyDto
-    {
-        $companyDto = new CompanyDto();
-        return $companyDto
-            ->setName($name)
-            ->setAddress($addressDto)
-            ->setCompanyId($companyId)
-            ->setVatNumber($vatNumber)
-            ->setBankAccountNumber($bankAccountNumber)
-            ->setSwift($swift);
-
-    }
-
-    public function makeInvoiceDataDto(
-        CompanyDto $supplier,
-        CompanyDto $subscriber,
-        string     $paymentType,
-        ?int       $created,
-        ?int       $dueDay,
-        ?string    $vs,
-        ?string    $ks,
-        ?string    $currency,
-        array      $invoiceItems
-    ): InvoiceDataDto
+    private static function makeInvoiceDataDto(int $id): InvoiceDataDto
     {
         $invoiceDataDto = new InvoiceDataDto();
         return $invoiceDataDto
-            ->setSupplier($supplier)
-            ->setSubscriber($subscriber)
-            ->setPaymentType($paymentType)
-            ->setCreated($created)
-            ->setDueDay($dueDay)
-            ->setVs($vs)
-            ->setKs($ks)
-            ->setCurrency($currency)
-            ->setInvoiceItems($invoiceItems);
+            ->setSupplier(self::makeCompanyDto($id))
+            ->setSubscriber(self::makeCompanyDto($id + 1))
+            ->setPaymentType(self::getPaymentType($id))
+            ->setCreated(12345678)
+            ->setDueDay(14)
+            ->setVs(self::generateVs($id))
+            ->setKs(self::generateKs($id))
+            ->setCurrency(self::getCurrency($id))
+            ->setInvoiceItems(self::populateInvoiceItemDto());
     }
 
-    public function makeMinimalInvoice(int $supplierId = 1, int $subscriberId = 2): InvoiceDto
+    public static function getInvoiceDataDto($id = 1): InvoiceDataDto
+    {
+        return self::makeInvoiceDataDto($id);
+    }
+
+    /**
+     * @psalm-return ArrayCollection<InvoiceItemDto>
+     */
+    private static function populateInvoiceItemDto(): ArrayCollection
+    {
+        $returnInvoiceItems = new ArrayCollection();
+        for ($i = 0; $i < self::INVOICE_ITEM_COUNT; $i++) {
+            $returnInvoiceItems->add(self::makeInvoiceItemWithNoVatDto($i));
+        }
+        return $returnInvoiceItems;
+    }
+
+    private static function makeInvoiceItemWithNoVatDto(int $id): InvoiceItemDto
+    {
+        $invoiceItemDto = new InvoiceItemDto();
+        return $invoiceItemDto
+            ->setVat(0)
+            ->setItemName("Invoice item 0" . $id)
+            ->setPrice(10000.0 + ($id / 10) + ($id * 10))
+            ->setUnitCount(1.0 * $id / 10);
+    }
+
+    public static function makeMinimalInvoice(int $supplierId = 1, int $subscriberId = 2): InvoiceDto
     {
         $invoiceDto = new InvoiceDto();
         return $invoiceDto
@@ -138,88 +119,71 @@ class DtoMock
     }
 
     /**
-     * Return {@link InvoiceDto} with fulfilled supplierId and subscriberId and
-     * invoice items.
      * @param int $supplierId
      * @param int $subscriberId
      * @return InvoiceDto
+     * Return {@link InvoiceDto} with fulfilled supplierId and subscriberId and
+     * invoice items.
      */
-    public function makeMinimalInvoiceDtoWithInvoiceItems(int $supplierId = 1, int $subscriberId = 2): InvoiceDto
+    public static function makeMinimalInvoiceDtoWithInvoiceItems(int $supplierId = 1, int $subscriberId = 2): InvoiceDto
     {
-        $invoiceDto = $this->makeMinimalInvoice($supplierId, $subscriberId);
+        $invoiceDto = self::makeMinimalInvoice($supplierId, $subscriberId);
         return $invoiceDto
-            ->setInvoiceItems($this->populateInvoiceItemDto());
+            ->setInvoiceItems(self::populateInvoiceItemDto()->toArray());
     }
 
-    public function makeFullInvoiceDto(
-        int    $supplierId,
-        int    $subscriberId,
-        string $paymentType,
-        int    $created,
-        int    $dueDay,
-        string $vs,
-        string $ks,
-        string $currency
-    ): InvoiceDto
+
+    private static function makeAddressDto(int $id): AddressDto
     {
-        $invoiceDto = $this->makeMinimalInvoiceDtoWithInvoiceItems($supplierId, $subscriberId);
-        $invoiceDto
-            ->setPaymentType($paymentType)
-            ->setSupplierId($created)
-            ->setDueDay($dueDay)
-            ->setVs($vs)
-            ->setKs($ks)
-            ->setCurrency($currency);
-        return $invoiceDto;
+        $addressDto = new AddressDto();
+        return $addressDto->setStreet("Fake street " . $id)
+            ->setCity("Fake city " . $id)
+            ->setCountry("Fake country " . $id)
+            ->setZipCode("1234" . $id);
     }
 
-    public function makeInvoiceItemDto(int $vat, string $itemName, float $price, float $unitCount): InvoiceItemDto
+    private static function makeCompanyDto(int $id): CompanyDto
     {
-        $invoiceItemDto = new InvoiceItemDto();
-        return $invoiceItemDto
-            ->setVat($vat)
-            ->setItemName($itemName)
-            ->setPrice($price)
-            ->setUnitCount($unitCount);
-    }
-
-    public function getAddressDto(): AddressDto
-    {
-        return $this->addressDto;
-    }
-
-    public function getCompanyDto(): CompanyDto
-    {
-        return $this->companyDto;
-    }
-
-    public function getInvoiceDataDto(): InvoiceDataDto
-    {
-        return $this->invoiceDto;
+        $companyDto = new CompanyDto();
+        return $companyDto
+            ->setName("Fake company name " . $id)
+            ->setAddress(DtoMock::makeAddressDto($id))
+            ->setCompanyId($id . "234567890")
+            ->setVatNumber($id . "345678901")
+            ->setBankAccountNumber($id . "34-567890123/1234")
+            ->setIban("CZ650800000019200014539" . $id)
+            ->setSwift("AIRACZPP1234567890" . $id)
+            ->setSignature("CZ0000123412345678901234. $id");
     }
 
     /**
-     * @return AddressDto[]
+     * @psalm-return ArrayCollection<CompanyDto>
      */
-    public function getAddressesDto(): array
+    private static function populateCompanyDto(): ArrayCollection
     {
-        return $this->addressesDto;
+        $returnArrayCollection = new ArrayCollection();
+        for ($i = 1; $i <= self::COMPANY_COUNT; $i++) {
+            $returnArrayCollection->add(DtoMock::makeCompanyDto($i));
+        }
+        return $returnArrayCollection;
+    }
+
+    public static function getCompanyDto(int $index = 0): CompanyDto
+    {
+        return self::getCompaniesDto()->get($index);
+    }
+
+    public static function getInvoiceDto(int $index = 0): InvoiceDto
+    {
+        return self::populateInvoiceDto()->get($index);
     }
 
     /**
-     * @return CompanyDto[]
+     * @return ArrayCollection<CompanyDto>
      */
-    public function getCompaniesDto(): array
+    public static function getCompaniesDto(): ArrayCollection
     {
-        return $this->companiesDto;
-    }
-
-    /**
-     * @return InvoiceDataDto[]
-     */
-    public function getInvoicesDto(): array
-    {
-        return $this->invoicesDto;
+        return DtoMock::populateCompanyDto();
     }
 
 }

@@ -18,6 +18,7 @@ class EntityMock
     }
 
     /**
+     * @deprecated
      * @psalm-return ArrayCollection<Company>
     */
     public function getCompanies(): ArrayCollection

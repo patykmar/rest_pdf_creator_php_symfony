@@ -10,7 +10,7 @@ use App\Repository\CompanyRepository;
 /**
  * @template-extends AbstractCrudService<Company, CompanyDto, CompanyMapper, CompanyRepository>
  */
-class CompanyService extends AbstractCrudService implements ICrudService
+class CompanyService extends AbstractCrudService
 {
     public function __construct(
         private readonly CompanyMapper     $companyMapper,
@@ -18,11 +18,6 @@ class CompanyService extends AbstractCrudService implements ICrudService
     )
     {
         parent::__construct($this->companyMapper, $this->companyRepository);
-    }
-
-    public function getOneDto(int $id): CompanyDto
-    {
-        return $this->companyMapper->toDto($this->getOneEntity($id));
     }
 
     public function saveEntity($dto): CompanyDto

@@ -8,7 +8,7 @@ use App\Tests\Mock\Dto\DtoMock;
 use App\Tests\Mock\Entity\EntityMock;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -32,6 +32,7 @@ class AbstractControllerTest extends WebTestCase
     protected KernelBrowser $client;
     protected EntityMock $entityConstants;
     protected DtoMock $dtoConstants;
+    protected ContainerInterface $container;
 
     protected function setUp(): void
     {
@@ -46,6 +47,7 @@ class AbstractControllerTest extends WebTestCase
         $this->client = static::createClient();
         $this->client->setServerParameter('CONTENT_TYPE', 'application/json');
         $this->client->setServerParameter('HTTP_ACCEPT', 'application/json');
+        $this->container = static::getContainer();
 
         $this->entityConstants = new EntityMock();
         $this->dtoConstants = new DtoMock();

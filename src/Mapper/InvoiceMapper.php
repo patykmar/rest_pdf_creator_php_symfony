@@ -3,7 +3,7 @@
 namespace App\Mapper;
 
 use App\Entity\Invoice;
-use App\Entity\InvoiceItemEntity;
+use App\Entity\InvoiceItem;
 use App\Exceptions\InvalidArgumentException;
 use App\Model\DataDto\InvoiceDataDto;
 use App\Model\Dto\CompanyDto;
@@ -12,6 +12,7 @@ use App\Model\Dto\InvoiceItemDto;
 use App\Service\InvoiceDefaultValuesService;
 use App\Trait\MapperUtilsTrait;
 use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 
 class InvoiceMapper
 {
@@ -39,12 +40,12 @@ class InvoiceMapper
             ->setSubscriber($this->companyMapper->toEntity($invoiceDto->getSubscriber()));
     }
 
-    public function toInvoiceItemEntity(array|InvoiceItemDto $invoiceItemDto): InvoiceItemEntity
+    public function toInvoiceItemEntity(array|InvoiceItemDto $invoiceItemDto): InvoiceItem
     {
         if (is_array($invoiceItemDto)) {
             return $this->fromArrayToInvoiceItemEntity($invoiceItemDto);
         } else {
-            $invoiceItemEntity = new InvoiceItemEntity();
+            $invoiceItemEntity = new InvoiceItem();
             return $invoiceItemEntity
                 ->setVat($invoiceItemDto->getVat())
                 ->setItemName($invoiceItemDto->getItemName())
@@ -59,7 +60,7 @@ class InvoiceMapper
         return $invoiceDataDto
             ->setSupplier($supplier)
             ->setSubscriber($subscriber)
-            ->setInvoiceItems($invoiceDto->getInvoiceItems())
+            ->setInvoiceItems(new ArrayCollection($invoiceDto->getInvoiceItems()))
             ->setCreated($invoiceDto->getCreated())
             ->setDueDay($invoiceDto->getDueDay())
             ->setVs($invoiceDto->getVs())
@@ -67,7 +68,7 @@ class InvoiceMapper
             ->setCurrency($invoiceDto->getCurrency());
     }
 
-    private function fromArrayToInvoiceItemEntity(array $invoiceItem): InvoiceItemEntity
+    private function fromArrayToInvoiceItemEntity(array $invoiceItem): InvoiceItem
     {
         $validate = array_key_exists('vat', $invoiceItem) &&
             array_key_exists('itemName', $invoiceItem) &&
@@ -76,7 +77,7 @@ class InvoiceMapper
         if (!$validate) {
             throw new InvalidArgumentException("Invoice item is not valid array");
         }
-        $invoiceItemEntity = new InvoiceItemEntity();
+        $invoiceItemEntity = new InvoiceItem();
         return $invoiceItemEntity
             ->setVat($invoiceItem['vat'])
             ->setItemName($invoiceItem['itemName'])

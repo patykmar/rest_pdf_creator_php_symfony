@@ -2,26 +2,26 @@
 
 namespace App\Repository;
 
-use App\Entity\InvoiceItemEntity;
+use App\Entity\InvoiceItem;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<InvoiceItemEntity>
+ * @extends ServiceEntityRepository<InvoiceItem>
  *
- * @method InvoiceItemEntity|null find($id, $lockMode = null, $lockVersion = null)
- * @method InvoiceItemEntity|null findOneBy(array $criteria, array $orderBy = null)
- * @method InvoiceItemEntity[]    findAll()
- * @method InvoiceItemEntity[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method InvoiceItem|null find($id, $lockMode = null, $lockVersion = null)
+ * @method InvoiceItem|null findOneBy(array $criteria, array $orderBy = null)
+ * @method InvoiceItem[]    findAll()
+ * @method InvoiceItem[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class InvoiceItemEntityRepository extends ServiceEntityRepository
+class InvoiceItemRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, InvoiceItemEntity::class);
+        parent::__construct($registry, InvoiceItem::class);
     }
 
-    public function save(InvoiceItemEntity $entity, bool $flush = false): void
+    public function save(InvoiceItem $entity, bool $flush = false): void
     {
         $this->getEntityManager()->persist($entity);
 
@@ -30,7 +30,7 @@ class InvoiceItemEntityRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(InvoiceItemEntity $entity, bool $flush = false): void
+    public function remove(InvoiceItem $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
 

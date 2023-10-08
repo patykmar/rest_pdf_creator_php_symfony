@@ -2,6 +2,8 @@
 
 namespace App\Model\Dto;
 
+use Doctrine\Common\Collections\ArrayCollection;
+
 final class InvoiceDto
 {
     private int $supplierId;
@@ -20,7 +22,7 @@ final class InvoiceDto
 
     public function __construct()
     {
-        $invoiceItems = array();
+        $this->invoiceItems = array();
     }
 
     /**
@@ -176,8 +178,7 @@ final class InvoiceDto
     }
 
     /**
-     * @param array $invoiceItems
-     * @return InvoiceDto
+     * @psalm-param InvoiceItemDto[] $invoiceItems
      */
     public function setInvoiceItems(array $invoiceItems): InvoiceDto
     {
