@@ -38,7 +38,7 @@ final class Invoice
     #[ORM\Column(length: 3)]
     private ?string $currency = null;
 
-    #[ORM\OneToMany(mappedBy: 'invoice', targetEntity: InvoiceItemEntity::class)]
+    #[ORM\OneToMany(mappedBy: 'invoice', targetEntity: InvoiceItem::class)]
     private Collection $invoiceItemEntities;
 
     #[ORM\ManyToOne(inversedBy: 'supplierInvoices')]
@@ -155,14 +155,14 @@ final class Invoice
     }
 
     /**
-     * @return Collection<int, InvoiceItemEntity>
+     * @return Collection<int, InvoiceItem>
      */
     public function getInvoiceItemEntities(): Collection
     {
         return $this->invoiceItemEntities;
     }
 
-    public function addInvoiceItemEntity(InvoiceItemEntity $invoiceItemEntity): Invoice
+    public function addInvoiceItemEntity(InvoiceItem $invoiceItemEntity): Invoice
     {
         if (!$this->invoiceItemEntities->contains($invoiceItemEntity)) {
             $this->invoiceItemEntities->add($invoiceItemEntity);
@@ -172,7 +172,7 @@ final class Invoice
         return $this;
     }
 
-    public function removeInvoiceItemEntity(InvoiceItemEntity $invoiceItemEntity): Invoice
+    public function removeInvoiceItemEntity(InvoiceItem $invoiceItemEntity): Invoice
     {
         if ($this->invoiceItemEntities->removeElement($invoiceItemEntity)) {
             // set the owning side to null (unless already changed)

@@ -4,19 +4,19 @@ namespace App\Tests\Mapper;
 
 use App\Entity\Company;
 use App\Entity\Invoice;
-use App\Entity\InvoiceItemEntity;
+use App\Entity\InvoiceItem;
 use App\Mapper\AddressMapper;
 use App\Mapper\CompanyMapper;
 use App\Mapper\InvoiceMapper;
 use App\Model\Dto\InvoiceItemDto;
 use App\Service\InvoiceDefaultValuesService;
-use App\Tests\Dto\DtoConstants;
+use App\Tests\Mock\Dto\DtoMock;
 use PHPUnit\Framework\TestCase;
 
 class InvoiceMapperTest extends TestCase
 {
     private InvoiceMapper $invoiceMapper;
-    private DtoConstants $dtoConstants;
+    private DtoMock $dtoConstants;
 
     protected function setUp(): void
     {
@@ -25,7 +25,7 @@ class InvoiceMapperTest extends TestCase
             new CompanyMapper(new AddressMapper()),
             new InvoiceDefaultValuesService()
         );
-        $this->dtoConstants = new DtoConstants();
+        $this->dtoConstants = new DtoMock();
     }
 
     public function testToInvoiceEntity()
@@ -72,7 +72,7 @@ class InvoiceMapperTest extends TestCase
         $this->markTestSkipped("testToInvoiceItemEntityExceptionTesting will be created");
     }
 
-    private function invoiceItemAssertions(InvoiceItemDto $invoiceItemDto, InvoiceItemEntity $invoiceItemEntity): void
+    private function invoiceItemAssertions(InvoiceItemDto $invoiceItemDto, InvoiceItem $invoiceItemEntity): void
     {
         $this->assertSame($invoiceItemDto->getVat(), $invoiceItemEntity->getVat());
         $this->assertSame($invoiceItemDto->getItemName(), $invoiceItemEntity->getItemName());

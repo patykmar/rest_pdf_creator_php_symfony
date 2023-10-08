@@ -2,12 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\InvoiceItemEntityRepository;
+use App\Repository\InvoiceItemRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: InvoiceItemEntityRepository::class)]
-class InvoiceItemEntity
+#[ORM\Entity(repositoryClass: InvoiceItemRepository::class)]
+class InvoiceItem
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

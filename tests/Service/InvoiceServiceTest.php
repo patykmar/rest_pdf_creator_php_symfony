@@ -12,14 +12,12 @@ use App\Repository\InvoiceRepository;
 use App\Service\CompanyService;
 use App\Service\InvoiceDefaultValuesService;
 use App\Service\InvoiceService;
-use App\Tests\Dto\DtoConstants;
+use App\Tests\Mock\Dto\DtoMock;
 use DateTime;
 use PHPUnit\Framework\TestCase;
 
 class InvoiceServiceTest extends TestCase
 {
-
-    private DtoConstants $dtoConstants;
     private InvoiceRepository $invoiceRepository;
     private CompanyService $companyService;
     private InvoiceService $invoiceService;
@@ -28,8 +26,6 @@ class InvoiceServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->dtoConstants = new DtoConstants();
-
         $invoiceMapper = new InvoiceMapper(
             new CompanyMapper(new AddressMapper()),
             new InvoiceDefaultValuesService()
@@ -37,18 +33,8 @@ class InvoiceServiceTest extends TestCase
         $this->companyService = $this->createMock(CompanyService::class);
         $this->invoiceRepository = $this->createMock(InvoiceRepository::class);
         $this->invoiceService = new InvoiceService($invoiceMapper, $this->companyService, $this->invoiceRepository);
-    }
 
-    public function testSaveEntity()
-    {
         $this->populateInvoiceDtoMinimalWithInvoiceItems();
-
-        $this->invoiceRepository->expects($this->once())
-            ->method('save')
-            ->withAnyParameters();
-
-        $invoiceDataDto = $this->invoiceService->mapDtoToDataDto($this->invoiceDto);
-        $this->invoiceService->saveEntity($invoiceDataDto);
     }
 
     private function populateInvoiceDtoMinimalWithInvoiceItems(): void
@@ -57,11 +43,21 @@ class InvoiceServiceTest extends TestCase
             ->method('getOneDto')
             ->withAnyParameters()
             ->willReturnOnConsecutiveCalls(
-                $this->dtoConstants->getCompaniesDto()[0],
-                $this->dtoConstants->getCompaniesDto()[1]
+                DtoMock::getCompanyDto(),
+                DtoMock::getCompanyDto(1)
             );
 
-        $this->invoiceDto = $this->dtoConstants->makeMinimalInvoiceDtoWithInvoiceItems(1, 2);
+        $this->invoiceDto = DtoMock::makeMinimalInvoiceDtoWithInvoiceItems();
+    }
+
+    public function testSaveEntity()
+    {
+        $this->invoiceRepository->expects($this->once())
+            ->method('save')
+            ->withAnyParameters();
+
+        $invoiceDataDto = $this->invoiceService->mapDtoToDataDto($this->invoiceDto);
+        $this->invoiceService->saveEntity($invoiceDataDto);
     }
 
     public function testMapDtoToDataDto()
@@ -76,8 +72,8 @@ class InvoiceServiceTest extends TestCase
         $this->assertNull($invoiceDataDto->getVs());
         $this->assertNull($invoiceDataDto->getKs());
         $this->assertNull($invoiceDataDto->getCurrency());
-        $this->assertIsArray($invoiceDataDto->getInvoiceItems());
-        $this->hasSize(5);
+        $this->assertIsArray($invoiceDataDto->getInvoiceItems()->toArray());
+        $this->assertSame(DtoMock::INVOICE_ITEM_COUNT, count($invoiceDataDto->getInvoiceItems()));
     }
 
     /**

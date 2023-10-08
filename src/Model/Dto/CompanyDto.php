@@ -9,8 +9,8 @@ final class CompanyDto
     private ?int $id = null;
     private string $name;
     private AddressDto $address;
-    private ?string $companyId = null;
     #[Assert\NotBlank]
+    private ?string $companyId = null;
     private ?string $vatNumber = null;
     #[Assert\NotBlank]
     private ?string $bankAccountNumber = null;

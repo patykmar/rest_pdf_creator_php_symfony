@@ -4,6 +4,7 @@ namespace App\Model\DataDto;
 
 use App\Model\Dto\CompanyDto;
 use App\Model\Dto\InvoiceItemDto;
+use Doctrine\Common\Collections\ArrayCollection;
 
 final class InvoiceDataDto
 {
@@ -17,9 +18,9 @@ final class InvoiceDataDto
     private ?string $currency = null;
 
     /**
-     * @var InvoiceItemDto[]
+     * @var ArrayCollection<InvoiceItemDto>
      */
-    private array $invoiceItems;
+    private ArrayCollection $invoiceItems;
 
     /**
      * @return CompanyDto
@@ -166,17 +167,17 @@ final class InvoiceDataDto
     }
 
     /**
-     * @return InvoiceItemDto[]
+     * @psalm-return ArrayCollection<InvoiceItemDto>
      */
-    public function getInvoiceItems(): array
+    public function getInvoiceItems(): ArrayCollection
     {
         return $this->invoiceItems;
     }
 
     /**
-     * @param InvoiceItemDto[] $invoiceItems
+     * @psalm-param ArrayCollection<InvoiceItemDto> $invoiceItems
      */
-    public function setInvoiceItems(array $invoiceItems): InvoiceDataDto
+    public function setInvoiceItems(ArrayCollection $invoiceItems): InvoiceDataDto
     {
         $this->invoiceItems = $invoiceItems;
         return $this;

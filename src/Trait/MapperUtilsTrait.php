@@ -4,7 +4,9 @@ namespace App\Trait;
 
 use DateTime;
 use DateTimeInterface;
-
+use Doctrine\Common\Collections\ArrayCollection;
+use ReflectionException;
+use ReflectionMethod;
 
 trait MapperUtilsTrait
 {
@@ -31,6 +33,25 @@ trait MapperUtilsTrait
     function getActualYear(): string
     {
         return $this->actualDateTime()->format("Y");
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function mappingCollection(ArrayCollection $collection, string $type, string $mappingMethod): ArrayCollection
+    {
+        if ($collection->isEmpty()) {
+            return new ArrayCollection();
+        }
+        $dtoArray = new ArrayCollection();
+        $reflectionMapperMethod = new ReflectionMethod($this, $mappingMethod);
+
+        foreach ($collection as $item) {
+            if ($item instanceof $type) {
+                $dtoArray->add($reflectionMapperMethod->invoke($this, $item));
+            }
+        }
+        return $dtoArray;
     }
 
 }

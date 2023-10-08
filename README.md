@@ -10,3 +10,17 @@ curl -i -X POST \
     -b XDEBUG_SESSION=PHPSTORM \
     -d @InvoiceRequest.json
 ```
+
+### Test fixtures load data
+
+```shell
+php bin/console --env=test doctrine:fixtures:load
+```
+
+##### Refresh database
+
+```shell
+bin/console --env=test doctrine:schema:drop --force \
+&& bin/console --env=test doctrine:schema:update --force \
+&& bin/console --env=test doctrine:fixtures:load -n
+```
