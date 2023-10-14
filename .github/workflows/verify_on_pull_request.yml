@@ -33,11 +33,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-php-
     - name: Install Dependencies
-      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      run: composer install --no-interaction --no-scripts --no-progress --prefer-dist --verbose
     - name: Creates the configured database
       run: php bin/console --env=test doctrine:database:create --no-interaction --verbose
     - name: Creates a new migration based on database changes
-      run: php bin/console --env=test make:migration --no-interaction --verbose
+      run: php bin/console make:migration --no-interaction --verbose
     - name: Execute a migration to a specified version or the latest available version.
       run: php bin/console --env=test doctrine:migrations:migrate --no-interaction --verbose
     - name: Load data fixtures to your database
