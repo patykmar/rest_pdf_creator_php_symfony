@@ -4,7 +4,6 @@ namespace App\Tests\Controller;
 
 use App\Tests\Controller\trait\JsonTestUtilsTrait;
 use App\Tests\Controller\trait\MockTrait;
-use App\Tests\Mock\Dto\DtoMock;
 use App\Tests\Mock\Entity\EntityMock;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -31,7 +30,6 @@ class AbstractControllerTest extends WebTestCase
     protected Serializer $serializer;
     protected KernelBrowser $client;
     protected EntityMock $entityConstants;
-    protected DtoMock $dtoConstants;
     protected ContainerInterface $container;
 
     protected function setUp(): void
@@ -50,7 +48,18 @@ class AbstractControllerTest extends WebTestCase
         $this->container = static::getContainer();
 
         $this->entityConstants = new EntityMock();
-        $this->dtoConstants = new DtoMock();
+    }
+
+    /**
+     * PHPUnit return Warning in case of no test found, so I've created simple test
+     * method for check if the protected field are initialized
+    */
+    public function testInit()
+    {
+        $this->assertNotNull($this->serializer);
+        $this->assertNotNull($this->client);
+        $this->assertNotNull($this->entityConstants);
+        $this->assertNotNull($this->container);
     }
 
 }

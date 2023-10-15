@@ -100,6 +100,15 @@ class DtoMock
         return $returnInvoiceItems;
     }
 
+    private static function populateInvoiceItemAsArray(): array
+    {
+        $result = array();
+        for ($i = 0; $i < self::INVOICE_ITEM_COUNT; $i++) {
+            $result[] = (self::makeInvoiceItemWithNoVatDtoAsArray($i));
+        }
+        return $result;
+    }
+
     private static function makeInvoiceItemWithNoVatDto(int $id): InvoiceItemDto
     {
         $invoiceItemDto = new InvoiceItemDto();
@@ -110,12 +119,30 @@ class DtoMock
             ->setUnitCount(1.0 * $id / 10);
     }
 
+    private static function makeInvoiceItemWithNoVatDtoAsArray(int $id): array
+    {
+        $invoiceItemDto = self::makeInvoiceItemWithNoVatDto($id);
+        return [
+            'vat' => $invoiceItemDto->getVat(),
+            'itemName' => $invoiceItemDto->getItemName(),
+            'price' => $invoiceItemDto->getPrice(),
+            'unitCount' => $invoiceItemDto->getUnitCount()
+        ];
+    }
+
     public static function makeMinimalInvoice(int $supplierId = 1, int $subscriberId = 2): InvoiceDto
     {
         $invoiceDto = new InvoiceDto();
         return $invoiceDto
             ->setSupplierId($supplierId)
             ->setSubscriberId($subscriberId);
+    }
+
+    public static function makeMinimalInvoiceWithItemsAsArray(): InvoiceDto
+    {
+        $invoiceDto = self::makeMinimalInvoice();
+        $invoiceDto->setInvoiceItems(self::populateInvoiceItemAsArray());
+        return $invoiceDto;
     }
 
     /**

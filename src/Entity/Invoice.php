@@ -155,7 +155,7 @@ final class Invoice
     }
 
     /**
-     * @return Collection<int, InvoiceItem>
+     * @psalm-return Collection<InvoiceItem>
      */
     public function getInvoiceItemEntities(): Collection
     {
@@ -169,6 +169,12 @@ final class Invoice
             $invoiceItemEntity->setInvoice($this);
         }
 
+        return $this;
+    }
+
+    public function setInvoiceItems(Collection $invoiceItems): self
+    {
+        $this->invoiceItemEntities = $invoiceItems;
         return $this;
     }
 
