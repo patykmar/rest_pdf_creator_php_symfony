@@ -51,6 +51,9 @@
             "migrations/.gitignore"
         ]
     },
+    "mark-gerarts/automapper-plus-bundle": {
+        "version": "1.4.1"
+    },
     "nelmio/cors-bundle": {
         "version": "2.3",
         "recipe": {
