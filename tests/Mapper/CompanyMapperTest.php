@@ -2,55 +2,55 @@
 
 namespace App\Tests\Mapper;
 
-use App\Entity\Company;
-use App\Mapper\AddressMapper;
+use App\DataFixtures\CompanyFixtures;
 use App\Mapper\CompanyMapper;
-use App\Model\Dto\CompanyDto;
+use App\Tests\AbstractKernelTestCase;
 use App\Tests\Mock\Dto\DtoMock;
-use App\Tests\Mock\Entity\EntityMock;
-use PHPUnit\Framework\TestCase;
+use AutoMapperPlus\Exception\UnregisteredMappingException;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Exception;
 
-class CompanyMapperTest extends TestCase
+class CompanyMapperTest extends AbstractKernelTestCase
 {
-    private EntityMock $entityConstants;
+    use CommonAsserTrait;
+
     private CompanyMapper $mapper;
 
+    /**
+     * @throws Exception
+     */
     protected function setUp(): void
     {
         parent::setUp();
-        $this->entityConstants = new EntityMock();
-        $this->mapper = new CompanyMapper(new AddressMapper());
+        $this->mapper = $this->container->get(CompanyMapper::class);
     }
 
+    /**
+     * @throws UnregisteredMappingException
+     */
     public function testToEntity()
     {
         $companyDto = DtoMock::getCompanyDto();
         $companyEntity = $this->mapper->toEntity($companyDto);
 
-        $this->assertInstanceOf(Company::class, $companyEntity);
-        $this->assertSame($companyDto->getCompanyId(), $companyEntity->getCompanyId());
-        $this->assertSame($companyDto->getIban(), $companyEntity->getIban());
-        $this->assertSame($companyDto->getId(), $companyEntity->getId());
-        $this->assertSame($companyDto->getSignature(), $companyEntity->getSignature());
-        $this->assertSame($companyDto->getName(), $companyEntity->getName());
-        $this->assertSame($companyDto->getVatNumber(), $companyEntity->getVatNumber());
-        $this->assertSame($companyDto->getAddress()->getCity(), $companyEntity->getCity());
-        $this->assertSame($companyDto->getAddress()->getCountry(), $companyEntity->getCountry());
-        $this->assertSame($companyDto->getAddress()->getStreet(), $companyEntity->getStreet());
-        $this->assertSame($companyDto->getAddress()->getZipCode(), $companyEntity->getZipCode());
+        $this->assertCompanyDtoToCompany($companyDto, $companyEntity);
     }
 
+    /**
+     * @throws UnregisteredMappingException
+     */
     public function testToDto()
     {
-        $companyEntity = $this->entityConstants->createCompany();
+        $companyEntity = CompanyFixtures::createCompany();
         $companyDto = $this->mapper->toDto($companyEntity);
 
-        $this->assertCompanyDto($companyEntity, $companyDto);
+        $this->assertCompanyToCompanyDto($companyEntity, $companyDto);
     }
 
     public function testToDtoCollections()
     {
-        $companiesEntity = $this->entityConstants->getCompanies();
+        $companiesEntity = $this->createCompanyCollection();
         $companiesDto = $this->mapper->toDtoCollection($companiesEntity);
 
         $this->assertNotEmpty($companiesDto);
@@ -59,22 +59,17 @@ class CompanyMapperTest extends TestCase
         $this->assertSame($itemsCount, count($companiesDto));
 
         for ($i = 0; $i < $itemsCount; $i++) {
-            $this->assertCompanyDto($companiesEntity[$i], $companiesDto[$i]);
+            $this->assertCompanyToCompanyDto($companiesEntity[$i], $companiesDto[$i]);
         }
     }
 
-    private function assertCompanyDto(Company $sourceEntity, CompanyDto $destinationDto): void
+
+    private function createCompanyCollection(): Collection
     {
-        $this->assertInstanceOf(CompanyDto::class, $destinationDto);
-        $this->assertSame($sourceEntity->getCompanyId(), $destinationDto->getCompanyId());
-        $this->assertSame($sourceEntity->getIban(), $destinationDto->getIban());
-        $this->assertSame($sourceEntity->getId(), $destinationDto->getId());
-        $this->assertSame($sourceEntity->getSignature(), $destinationDto->getSignature());
-        $this->assertSame($sourceEntity->getName(), $destinationDto->getName());
-        $this->assertSame($sourceEntity->getVatNumber(), $destinationDto->getVatNumber());
-        $this->assertSame($sourceEntity->getCity(), $destinationDto->getAddress()->getCity());
-        $this->assertSame($sourceEntity->getCountry(), $destinationDto->getAddress()->getCountry());
-        $this->assertSame($sourceEntity->getStreet(), $destinationDto->getAddress()->getStreet());
-        $this->assertSame($sourceEntity->getZipCode(), $destinationDto->getAddress()->getZipCode());
+        $result = new ArrayCollection();
+        for ($i = 1; $i <= CompanyFixtures::REFERENCE_COUNT; $i++) {
+            $result->add(CompanyFixtures::createCompany($i));
+        }
+        return $result;
     }
 }

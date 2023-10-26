@@ -3,40 +3,29 @@
 namespace App\Repository;
 
 use App\Entity\InvoiceItem;
+use App\Model\LimitResult;
+use App\Trait\CrudRepositoryTrait;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use phpDocumentor\Reflection\Types\Collection;
 
 /**
  * @extends ServiceEntityRepository<InvoiceItem>
  *
- * @method InvoiceItem|null find($id, $lockMode = null, $lockVersion = null)
- * @method InvoiceItem|null findOneBy(array $criteria, array $orderBy = null)
- * @method InvoiceItem[]    findAll()
- * @method InvoiceItem[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method InvoiceItem|null        find($id, $lockMode = null, $lockVersion = null)
+ * @method InvoiceItem|null        findOneBy(array $criteria, array $orderBy = null)
+ * @method InvoiceItem[]           findAll()
+ * @method InvoiceItem[]           findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method InvoiceItem|null        findLastEntity()
+ * @method Collection<InvoiceItem> findByLimitResult(LimitResult $limitResult)
  */
-class InvoiceItemRepository extends ServiceEntityRepository
+class InvoiceItemRepository extends ServiceEntityRepository implements ICrudRepository
 {
+    use CrudRepositoryTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, InvoiceItem::class);
-    }
-
-    public function save(InvoiceItem $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(InvoiceItem $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
     }
 
 //    /**

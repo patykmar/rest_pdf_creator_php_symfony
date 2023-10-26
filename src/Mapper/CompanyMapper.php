@@ -3,61 +3,38 @@
 namespace App\Mapper;
 
 use App\Entity\Company;
+use App\Entity\IEntity;
 use App\Model\Dto\CompanyDto;
 use App\Trait\MapperUtilsTrait;
+use AutoMapperPlus\AutoMapperInterface;
+use AutoMapperPlus\Exception\UnregisteredMappingException;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use ReflectionException;
 
-class CompanyMapper
+class CompanyMapper implements ICrudMapper
 {
-
     use MapperUtilsTrait;
 
     public function __construct(
-        private readonly AddressMapper $addressMapper,
+        private readonly AutoMapperInterface $mapper
     )
     {
     }
 
-    public function toEntity(CompanyDto $dto): Company
+    /**
+     * @throws UnregisteredMappingException
+     */
+    private function toDtoStrict(Company $entity): CompanyDto
     {
-        $company = new Company();
-        $company->setName($dto->getName())
-            ->setCountry($dto->getAddress()->getCountry())
-            ->setStreet($dto->getAddress()->getStreet())
-            ->setCity($dto->getAddress()->getCity())
-            ->setZipCode($dto->getAddress()->getZipCode())
-            ->setCompanyId($dto->getCompanyId())
-            ->setVatNumber($dto->getVatNumber())
-            ->setBankAccountNumber($dto->getBankAccountNumber())
-            ->setIban($dto->getIban())
-            ->setSwift($dto->getSwift())
-            ->setSignature($dto->getSignature());
-        return $company;
-    }
-
-    public function toDto(Company $entity): CompanyDto
-    {
-        $companyDto = new CompanyDto();
-        $companyDto
-            ->setId($entity->getId())
-            ->setName($entity->getName())
-            ->setIban($entity->getIban())
-            ->setCompanyId($entity->getCompanyId())
-            ->setVatNumber($entity->getVatNumber())
-            ->setBankAccountNumber($entity->getBankAccountNumber())
-            ->setIban($entity->getIban())
-            ->setSwift($entity->getSwift())
-            ->setSignature($entity->getSignature())
-            ->setAddress($this->addressMapper->toDto($entity));
-        return $companyDto;
+        return $this->mapper->map($entity, CompanyDto::class);
     }
 
     /**
-     * @psalm-param ArrayCollection<Company> $entities
+     * @psalm-param Collection<Company> $entities
      * @psalm-return ArrayCollection<CompanyDto>
      */
-    public function toDtoCollection(ArrayCollection $entities): ArrayCollection
+    public function toDtoCollection(Collection $entities): ArrayCollection
     {
         try {
             return $this->mappingCollection($entities, Company::class, 'toDto');
@@ -66,4 +43,40 @@ class CompanyMapper
         }
     }
 
+    /**
+     * @param CompanyDto $dto
+     * @throws UnregisteredMappingException
+     */
+    public function toEntity($dto): Company
+    {
+        return $this->mapper->map($dto, Company::class);
+    }
+
+    /**
+     * @throws UnregisteredMappingException
+     */
+    public function toDto($entity): CompanyDto
+    {
+        return $this->toDtoStrict($entity);
+    }
+
+    /**
+     * Mapping method before save editing
+     */
+    public function editItemMapper(IEntity $company, CompanyDto $companyDto): void
+    {
+        if ($company instanceof Company) {
+            $company->setName($companyDto->getName());
+            $company->setCountry($companyDto->getAddress()->getCountry());
+            $company->setStreet($companyDto->getAddress()->getStreet());
+            $company->setCity($companyDto->getAddress()->getCity());
+            $company->setZipCode($companyDto->getAddress()->getZipCode());
+            $company->setCompanyId($companyDto->getCompanyId());
+            $company->setVatNumber($companyDto->getVatNumber());
+            $company->setBankAccountNumber($companyDto->getBankAccountNumber());
+            $company->setIban($companyDto->getIban());
+            $company->setSwift($companyDto->getSwift());
+            $company->setSignature($companyDto->getSignature());
+        }
+    }
 }

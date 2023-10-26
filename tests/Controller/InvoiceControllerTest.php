@@ -2,34 +2,83 @@
 
 namespace App\Tests\Controller;
 
+use App\Controller\IHttpMethod;
+use App\Controller\InvoiceController;
+use App\DataFixtures\InvoiceFixtures;
+use App\Model\DataDto\InvoiceDataDto;
+
+use App\Model\Dto\CompanyDto;
+use App\Model\Dto\InvoiceDto;
 use App\Model\Dto\InvoiceItemDto;
 use App\Repository\InvoiceRepository;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
+use App\Tests\Mapper\CommonAsserTrait;
+use App\Tests\Mock\Dto\DtoMock;
 
-class InvoiceControllerTest extends WebTestCase
+class InvoiceControllerTest extends AbstractControllerTest
 {
-    private array $invoiceZeroVat;
-    private Serializer $serializer;
+    use CommonAsserTrait;
 
-    protected function setUp(): void
+    const URI = "/invoice";
+    private array $invoiceZeroVat;
+
+    public function testFetchAll()
     {
-        parent::setUp();
-        $encoders = [new XmlEncoder(), new JsonEncoder()];
-        $normalizers = [new ObjectNormalizer()];
-        $this->serializer = new Serializer($normalizers, $encoders);
-        $this->initializedInvoice();
+        $this->client->request(IHttpMethod::GET, self::URI);
+        $this->assertResponseIsSuccessful();
+
+        /** @var InvoiceDataDto[] $deserializedResult */
+        $deserializedResult = $this->jsonValidateAndDeserializeResponse("App\Model\DataDto\InvoiceDataDto[]", $this->client->getResponse());
+
+        $this->assertCount(InvoiceFixtures::REFERENCE_COUNT, $deserializedResult);
+
+        foreach ($deserializedResult as $item) {
+            $this->assertInvoiceNotNull($item);
+        }
+    }
+
+    public function testFetchById(): void
+    {
+        $this->client->request(IHttpMethod::GET, self::URI . '/1');
+        $this->assertResponseIsSuccessful();
+        /** @var InvoiceDataDto $invoiceDataDto */
+        $invoiceDataDto = $this->jsonValidateAndDeserializeResponse(InvoiceDataDto::class, $this->client->getResponse());
+        $this->assertInvoiceNotNull($invoiceDataDto);
+    }
+
+    /**
+     * Tested method <b>editItem</b> from class {@link InvoiceController}
+    */
+    public function testEdit(): void
+    {
+        $jsonContent6 = $this->readJsonFileAndValid('invoice/invoiceNoVat_id_6.json');
+        /** @var InvoiceDto $invoiceDtoJson6 */
+        $invoiceDtoJson6 = $this->jsonValidateAndDeserializeJson(InvoiceDto::class, $jsonContent6);
+        $this->client->request(IHttpMethod::PUT, self::URI . '/1', [], [], [], $jsonContent6);
+        $this->assertResponseIsSuccessful();
+
+        /** @var InvoiceDataDto $invoiceDataDto */
+        $invoiceDataDto = $this->jsonValidateAndDeserializeResponse(InvoiceDataDto::class, $this->client->getResponse());
+        $this->assertInvoiceNotNull($invoiceDataDto);
+
+        $this->assertSame(1, $invoiceDataDto->getId());
+        $this->assertInvoiceDtoAndInvoiceDataDto($invoiceDtoJson6, $invoiceDataDto);
+
+        // changing back invoice with ID 1
+        $invoiceDto1 = DtoMock::getInvoiceDto();
+        $invoiceDtoJson1 = $this->jsonSerialize($invoiceDto1);
+
+        $this->client->request(IHttpMethod::PUT, self::URI . '/1', [], [], [], $invoiceDtoJson1);
+
+        /** @var InvoiceDataDto $invoiceDataDto1 */
+        $invoiceDataDto1 = $this->jsonValidateAndDeserializeResponse(InvoiceDataDto::class, $this->client->getResponse());
+        $this->assertInvoiceNotNull($invoiceDataDto1);
+        $this->assertSame(1, $invoiceDataDto1->getId());
+        $this->assertInvoiceDtoAndInvoiceDataDto($invoiceDto1, $invoiceDataDto1);
     }
 
     public function testPdfInvoice()
     {
         $this->markTestSkipped("The test will be fixed by new PR");
-        $client = static::createClient();
-        $client->setServerParameter('CONTENT_TYPE', 'application/json');
-        $client->setServerParameter('HTTP_ACCEPT', 'application/json');
 
         $repository = $this->createMock(InvoiceRepository::class);
 
@@ -47,108 +96,66 @@ class InvoiceControllerTest extends WebTestCase
 
     }
 
-    public function testJsonDecode()
+    /**
+     * @param InvoiceDto $invoiceDto source DTO object
+     * @param InvoiceDataDto $invoiceDataDto destination DataDto object from response
+     */
+    public function assertInvoiceDtoAndInvoiceDataDto(InvoiceDto $invoiceDto, InvoiceDataDto $invoiceDataDto): void
     {
-        $this->markTestSkipped("Consider if this test is needed");
+        $this->assertIsNumeric($invoiceDataDto->getId());
+        $this->assertSame($invoiceDto->getPaymentType(), $invoiceDataDto->getPaymentType());
+        $this->assertSame($invoiceDto->getCreated(), $invoiceDataDto->getCreated());
+        $this->assertSame($invoiceDto->getDueDay(), $invoiceDataDto->getDueDay());
+        $this->assertSame($invoiceDto->getVs(), $invoiceDataDto->getVs());
+        $this->assertSame($invoiceDto->getKs(), $invoiceDataDto->getKs());
+        $this->assertSame($invoiceDto->getCurrency(), $invoiceDataDto->getCurrency());
 
-        $subArray = array(
-            $this->generateInvoiceItem("Item 1", 0, 1111.1111, 10),
-            $this->generateInvoiceItem("Item 2", 0, 9999.9999, 20),
-            $this->generateInvoiceItem("Item 3", 0, 1111.1111, 30),
-            $this->generateInvoiceItem("Item 4", 0, 9999.9999, 40),
-        );
+        $this->assertCompanyDto($invoiceDto->getSupplierId(), $invoiceDataDto->getSupplier());
+        $this->assertCompanyDto($invoiceDto->getSubscriberId(), $invoiceDataDto->getSubscriber());
 
-        $array = [
-            "field1" => "Value of field 1",
-            "field2" => "Value of field 2",
-            "field3" => "Value of field 3",
-            "field4" => "Value of field 4",
-            "field5" => "Value of field 5",
-            "subFields" => $subArray
-        ];
+        $countOfSourceInvoiceItems = count($invoiceDto->getInvoiceItems());
+        $countOfResultInvoiceItems = count($invoiceDataDto->getInvoiceItems());
 
-        $jsonSerialized = $this->serializer->serialize($array, 'json');
+        $this->assertSame($countOfSourceInvoiceItems, $countOfResultInvoiceItems);
 
-//        $this->assertNotNull($jsonSerialized);
-//        $this->assertNotNull($jsonSerialized);
+        for ($i = 0; $i < $countOfSourceInvoiceItems; $i++) {
+            $invoiceItemDtos = [
+                $invoiceDto->getInvoiceItems()[$i],
+                $invoiceDataDto->getInvoiceItems()[$i]
+            ];
+            $this->assertInvoiceItemDtos($invoiceItemDtos);
+            unset($invoiceItemDtos);
+        }
     }
 
-
-    private function generateCompany(
-        string $companyName = "Fake company",
-        string $companyId = "123456789",
-        string $bankAccountNumber = null,
-        string $vatNumber = null,
-        string $iban = null,
-        string $swift = null
-    ): array
+    private function assertCompanyDto(int $companyId, CompanyDto $companyDto): void
     {
-        return [
-            "name" => $companyName,
-            "companyId" => $companyId,
-            "vatNumber" => $vatNumber,
-            "bankAccountNumber" => $bankAccountNumber,
-            "iban" => $iban,
-            "swift:" => $swift,
-            "address" => $this->generateAddress()
-        ];
+        $this->assertNotNull($companyDto);
+        $this->assertCompanyDtoNotNull($companyDto);
+        $this->assertSame($companyId, $companyDto->getId());
     }
 
-    private function generateAddress(
-        string $country = "Fiction USA",
-        string $street = "Fake street 123",
-        string $city = "Springfield",
-        string $zipCode = "110 00"
-    ): array
+    /**
+     * Compare two same data type {@see InvoiceItemDto} if there is same value
+     * @param array $invoiceItemDtos expected two items
+     * 1. item source (expected value)
+     * 2. item result of api endpoint
+     */
+    public function assertInvoiceItemDtos(array $invoiceItemDtos): void
     {
-        return [
-            "country" => $country,
-            "street" => $street,
-            "city" => $city,
-            "zipCode" => $zipCode
-        ];
-    }
+        $this->assertCount(2, $invoiceItemDtos);
 
-    private function generateInvoiceItem(
-        string $itemName,
-        int    $vat,
-        float  $price,
-        float  $unitCount
-    ): InvoiceItemDto
-    {
-        $invoiceItemDto = new InvoiceItemDto();
-        return $invoiceItemDto
-            ->setItemName($itemName)
-            ->setVat($vat)
-            ->setPrice($price)
-            ->setUnitCount($unitCount);
-    }
+        $invoiceItemDtoExpected = $invoiceItemDtos[0];
+        $this->assertInstanceOf(InvoiceItemDto::class, $invoiceItemDtoExpected);
 
-    public function initializedInvoice(): void
-    {
-//        $supplier = $this->generateCompany("Fake supplier company", "123456789", "123-123456/1234");
-//        $subscriber = $this->generateCompany("Fake subscriber company", "234567891", "234-234567/2345");
+        $invoiceItemDtoResult = $invoiceItemDtos[1];
+        $this->assertInstanceOf(InvoiceItemDto::class, $invoiceItemDtoResult);
 
-        $supplier = $this->generateCompany("Fake supplier company");
-        $subscriber = $this->generateCompany("Fake subscriber company");
-
-        $invoiceItems = array(
-            $this->generateInvoiceItem("Item 1", 0, 1111.1111, 10),
-            $this->generateInvoiceItem("Item 2", 0, 9999.9999, 20),
-            $this->generateInvoiceItem("Item 3", 0, 1111.1111, 30),
-            $this->generateInvoiceItem("Item 4", 0, 9999.9999, 40),
-        );
-
-        $this->invoiceZeroVat = [
-            "supplier" => $supplier,
-            "subscriber" => $subscriber,
-            "paymentType" => "transfer",
-            "dueDay" => 1234567890,
-            "vs" => "12345678",
-            "ks" => "0308",
-            "currency" => "CZK",
-            "invoiceItems" => $invoiceItems
-        ];
+        $this->assertIsNumeric($invoiceItemDtoResult->getId());
+        $this->assertSame($invoiceItemDtoExpected->getVat(), $invoiceItemDtoResult->getVat());
+        $this->assertSame($invoiceItemDtoExpected->getItemName(), $invoiceItemDtoResult->getItemName());
+        $this->assertSame($invoiceItemDtoExpected->getPrice(), $invoiceItemDtoResult->getPrice());
+        $this->assertSame($invoiceItemDtoExpected->getUnitCount(), $invoiceItemDtoResult->getUnitCount());
     }
 
 }

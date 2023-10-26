@@ -6,9 +6,13 @@ use App\Entity\Company;
 use App\Mapper\CompanyMapper;
 use App\Model\Dto\CompanyDto;
 use App\Repository\CompanyRepository;
+use AutoMapperPlus\Exception\UnregisteredMappingException;
 
 /**
  * @template-extends AbstractCrudService<Company, CompanyDto, CompanyMapper, CompanyRepository>
+ *
+ * @method Company    getOneEntity(int $id)
+ * @method CompanyDto getOneDto(int $id)
  */
 class CompanyService extends AbstractCrudService
 {
@@ -20,11 +24,18 @@ class CompanyService extends AbstractCrudService
         parent::__construct($this->companyMapper, $this->companyRepository);
     }
 
+    /**
+     * @param CompanyDto $dto
+     * @throws UnregisteredMappingException
+     */
     public function saveEntity($dto): CompanyDto
     {
         return $this->saveEntityStrict($dto);
     }
 
+    /**
+     * @throws UnregisteredMappingException
+     */
     private function saveEntityStrict(CompanyDto $dto): CompanyDto
     {
         $this->companyRepository->save($this->companyMapper->toEntity($dto));
@@ -48,17 +59,12 @@ class CompanyService extends AbstractCrudService
      * @param CompanyDto $dto
      * @param int $id
      * @return CompanyDto
+     * @throws UnregisteredMappingException
      */
     public function editEntity($dto, int $id): CompanyDto
     {
-        return $this->editEntityStrict($dto, $id);
-    }
-
-    private function editEntityStrict(CompanyDto $dto, int $id): CompanyDto
-    {
         $this->checkId($id);
-        $this->entity = $this->companyMapper->toEntity($dto);
-        $this->entity->setId($id);
+        $this->companyMapper->editItemMapper($this->entity, $dto);
         $this->companyRepository->save($this->entity);
         return $this->companyMapper->toDto($this->entity);
     }

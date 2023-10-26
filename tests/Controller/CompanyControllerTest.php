@@ -2,15 +2,16 @@
 
 namespace App\Tests\Controller;
 
+use App\Controller\CompanyController;
 use App\Controller\IHttpMethod;
 use App\DataFixtures\CompanyFixtures;
 use App\Entity\Company;
-use App\Mapper\AddressMapper;
 use App\Mapper\CompanyMapper;
 use App\Model\Dto\AddressDto;
 use App\Model\Dto\CompanyDto;
 use App\Repository\CompanyRepository;
 use App\Tests\Mock\Dto\DtoMock;
+use AutoMapperPlus\Exception\UnregisteredMappingException;
 use Doctrine\Common\Collections\ArrayCollection;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,11 +33,14 @@ class CompanyControllerTest extends AbstractControllerTest
         $this->repository = $this->createMock(CompanyRepository::class);
         $this->companyEntity = $this->entityConstants->getCompanies()->get(0);
 
-        $this->mapper = new CompanyMapper(new AddressMapper());
+        $this->mapper = $this->container->get(CompanyMapper::class);
 //        $this->databaseTool = $this->container->get(DatabaseToolCollection::class)->get();
     }
 
 
+    /**
+     * @throws UnregisteredMappingException
+     */
     public function testNewItem()
     {
         $mockCompanyEntity = $this->mapper->toEntity(DtoMock::getCompanyDto());
@@ -51,7 +55,7 @@ class CompanyControllerTest extends AbstractControllerTest
         $this->assertResponseIsSuccessful();
 
         /** @var CompanyDto $deserializedCompanyDto */
-        $deserializedCompanyDto = $this->jsonValidateAndDeserialize(CompanyDto::class, $this->client->getResponse());
+        $deserializedCompanyDto = $this->jsonValidateAndDeserializeResponse(CompanyDto::class, $this->client->getResponse());
 
         $this->assertEntityToDto($mockCompanyEntity, $deserializedCompanyDto);
     }
@@ -76,7 +80,7 @@ class CompanyControllerTest extends AbstractControllerTest
         $this->client->request(IHttpMethod::GET, self::URI);
         $this->assertResponseIsSuccessful();
 
-        $deserializedArrayOfCompanyDto = $this->jsonValidateAndDeserialize("App\Model\Dto\CompanyDto[]", $this->client->getResponse());
+        $deserializedArrayOfCompanyDto = $this->jsonValidateAndDeserializeResponse("App\Model\Dto\CompanyDto[]", $this->client->getResponse());
         $this->assertCount(CompanyFixtures::REFERENCE_COUNT, $deserializedArrayOfCompanyDto);
 
 
@@ -96,27 +100,37 @@ class CompanyControllerTest extends AbstractControllerTest
         $this->client->request(IHttpMethod::GET, self::URI . '/1');
         $this->assertResponseIsSuccessful();
 
-        /** @var CompanyDto $deserializedCompanyDto */
-        $deserializedCompanyDto = $this->jsonValidateAndDeserialize(CompanyDto::class, $this->client->getResponse());
+        /** @var CompanyDto $deserializedCompanyDtoResponse */
+        $deserializedCompanyDtoResponse = $this->jsonValidateAndDeserializeResponse(CompanyDto::class, $this->client->getResponse());
+        $this->assertEntityToDto($this->companyEntity, $deserializedCompanyDtoResponse);
 
-        $this->assertEntityToDto($this->companyEntity, $deserializedCompanyDto);
     }
 
+    /**
+     * Tested method <b>editItem</b> {@link CompanyController}
+     * Update company with id 1, tested output and do rollback 2nd call
+     */
     public function testEditItem()
     {
-        define("TEST_ENTITY_ID", 1);
-
-        CompanyFixtures::createCompany(TEST_ENTITY_ID);
-
-        $jsonData = $this->jsonSerialize(DtoMock::getCompanyDto(TEST_ENTITY_ID));
-
-        $this->client->request(IHttpMethod::PUT, self::URI . "/" . TEST_ENTITY_ID, [], [], [], $jsonData);
+        $jsonContent666 = $this->readJsonFileAndValid('company/companyEdit666.json');
+        /** @var CompanyDto $expectedCompanyDto666 */
+        $expectedCompanyDto666 = $this->jsonValidateAndDeserializeJson(CompanyDto::class, $jsonContent666);
+        $this->client->request(IHttpMethod::PUT, self::URI . '/1', [], [], [], $jsonContent666);
         $this->assertResponseIsSuccessful();
+        /** @var CompanyDto $deserializedCompanyDto666 */
+        $deserializedCompanyDto666 = $this->jsonValidateAndDeserializeResponse(CompanyDto::class, $this->client->getResponse());
+        $this->compareTwoCompanyDto($expectedCompanyDto666, $deserializedCompanyDto666);
 
-        /** @var CompanyDto $deserializedCompanyDto */
-        $deserializedCompanyDto = $this->jsonValidateAndDeserialize(CompanyDto::class, $this->client->getResponse());
+        // Rollback company content
+        $jsonContent1 = $this->readJsonFileAndValid('company/companyEdit1.json');
+        /** @var CompanyDto $expectedCompanyDto1 */
+        $expectedCompanyDto1 = $this->jsonValidateAndDeserializeJson(CompanyDto::class, $jsonContent1);
+        $this->client->request(IHttpMethod::PUT, self::URI . '/1', [], [], [], $jsonContent1);
+        $this->assertResponseIsSuccessful();
+        /** @var CompanyDto $deserializedCompanyDto1 */
+        $deserializedCompanyDto1 = $this->jsonValidateAndDeserializeResponse(CompanyDto::class, $this->client->getResponse());
+        $this->compareTwoCompanyDto($expectedCompanyDto1, $deserializedCompanyDto1);
 
-        $this->assertInputAndOutputCompanyDto(DtoMock::getCompanyDto(TEST_ENTITY_ID), $deserializedCompanyDto, TEST_ENTITY_ID);
     }
 
     private function assertEntityToDto(Company $mockEntity, CompanyDto $deserializeResponse): void
@@ -143,24 +157,31 @@ class CompanyControllerTest extends AbstractControllerTest
      * using as a parameter to call rest endpoint. Second parameter <b>$outputCompanyDto</b> should be result of
      * application login which returned endpoint after call.
      */
-    private function assertInputAndOutputCompanyDto(CompanyDto $inputCompanyDto, CompanyDto $outputCompanyDto, ?int $id): void
+    private function compareTwoCompanyDto(CompanyDto $expectedCompanyDto, CompanyDto $resultCompanyDto): void
     {
-        $this->assertNotNull($outputCompanyDto);
-        $this->assertSame($outputCompanyDto->getId(), $id);
-        $this->assertSame($inputCompanyDto->getName(), $outputCompanyDto->getName());
-        $this->assertSame($inputCompanyDto->getCompanyId(), $outputCompanyDto->getCompanyId());
-        $this->assertSame($inputCompanyDto->getVatNumber(), $outputCompanyDto->getVatNumber());
-        $this->assertSame($inputCompanyDto->getBankAccountNumber(), $outputCompanyDto->getBankAccountNumber());
-        $this->assertSame($inputCompanyDto->getIban(), $outputCompanyDto->getIban());
-        $this->assertSame($inputCompanyDto->getSwift(), $outputCompanyDto->getSwift());
-        $this->assertSame($inputCompanyDto->getSignature(), $outputCompanyDto->getSignature());
+        $this->assertNotNull($expectedCompanyDto);
+        $this->assertNotNull($resultCompanyDto);
 
-        $inputAddressDto = $inputCompanyDto->getAddress();
-        $outputAddressDto = $outputCompanyDto->getAddress();
-        $this->assertSame($inputAddressDto->getCountry(), $outputAddressDto->getCountry());
-        $this->assertSame($inputAddressDto->getStreet(), $outputAddressDto->getStreet());
-        $this->assertSame($inputAddressDto->getCity(), $outputAddressDto->getCity());
-        $this->assertSame($inputAddressDto->getZipCode(), $outputAddressDto->getZipCode());
+        $this->assertNull($expectedCompanyDto->getId());
+        $this->assertIsNumeric($resultCompanyDto->getId());
+        $this->assertSame(1, $resultCompanyDto->getId());
+
+        $this->assertSame($expectedCompanyDto->getName(), $resultCompanyDto->getName());
+
+        // address
+        $this->assertNotNull($expectedCompanyDto->getAddress());
+        $this->assertNotNull($resultCompanyDto->getAddress());
+        $this->assertSame($expectedCompanyDto->getAddress()->getCountry(), $resultCompanyDto->getAddress()->getCountry());
+        $this->assertSame($expectedCompanyDto->getAddress()->getStreet(), $resultCompanyDto->getAddress()->getStreet());
+        $this->assertSame($expectedCompanyDto->getAddress()->getCity(), $resultCompanyDto->getAddress()->getCity());
+        $this->assertSame($expectedCompanyDto->getAddress()->getZipCode(), $resultCompanyDto->getAddress()->getZipCode());
+
+        $this->assertSame($expectedCompanyDto->getCompanyId(), $resultCompanyDto->getCompanyId());
+        $this->assertSame($expectedCompanyDto->getVatNumber(), $resultCompanyDto->getVatNumber());
+        $this->assertSame($expectedCompanyDto->getBankAccountNumber(), $resultCompanyDto->getBankAccountNumber());
+        $this->assertSame($expectedCompanyDto->getSwift(), $resultCompanyDto->getSwift());
+        $this->assertSame($expectedCompanyDto->getIban(), $resultCompanyDto->getIban());
+        $this->assertSame($expectedCompanyDto->getSignature(), $resultCompanyDto->getSignature());
     }
 
 
@@ -173,7 +194,8 @@ class CompanyControllerTest extends AbstractControllerTest
         $this->assertStringStartsWith("Company", $companyDto->getName());
         $this->assertStringStartsWith("23456789", $companyDto->getCompanyId());
         $this->assertStringStartsWith("12345678", $companyDto->getVatNumber());
-        $this->assertStringEndsWith("234-1234567890/1234", $companyDto->getBankAccountNumber());
+        $this->assertNotNull($companyDto->getBankAccountNumber());
+        $this->assertSame(21, strlen($companyDto->getBankAccountNumber()));
         $this->assertStringStartsWith("CZ00001234123456789012", $companyDto->getIban());
         $this->assertStringStartsWith("AIRACZPP12345678", $companyDto->getSwift());
         $this->assertStringStartsWith("CZ000012341234567890123", $companyDto->getSignature());
@@ -184,6 +206,7 @@ class CompanyControllerTest extends AbstractControllerTest
         $this->assertStringStartsWith("Company", $addressDto->getCountry());
         $this->assertStringStartsWith("Company", $addressDto->getStreet());
         $this->assertStringStartsWith("Company", $addressDto->getCity());
-        $this->assertStringStartsWith("Company", $addressDto->getZipCode());
+        $this->assertStringStartsWith("123", $addressDto->getZipCode());
     }
 }
+

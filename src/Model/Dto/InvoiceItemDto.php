@@ -4,10 +4,23 @@ namespace App\Model\Dto;
 
 class InvoiceItemDto
 {
+    private ?int $id = null;
     private int $vat;
     private string $itemName;
     private float $price;
     private float $unitCount;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function setId(?int $id): InvoiceItemDto
+    {
+        $this->id = $id;
+        return $this;
+    }
+
 
     /**
      * @return int

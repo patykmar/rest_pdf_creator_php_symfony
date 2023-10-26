@@ -2,10 +2,12 @@
 
 namespace App\Service;
 
-use App\Entity\EntityInterface;
+use App\Entity\IEntity;
 use App\Exceptions\NotFoundException;
 use App\Exceptions\NotImplementException;
+use App\Mapper\ICrudMapper;
 use App\Model\LimitResult;
+use App\Repository\ICrudRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
@@ -14,26 +16,26 @@ use Doctrine\Common\Collections\ArrayCollection;
  * @template M of object mapper
  * @template R of object repository
  * @implements ICrudService<E, D>
- * @implements IMapperService<E, D>
  */
-class AbstractCrudService implements ICrudService, IMapperService
+abstract class AbstractCrudService implements ICrudService
 {
-    protected ?EntityInterface $entity;
+
+    protected ?IEntity $entity;
     /**
      * @psalm-var M $mapper
      */
-    private object $mapper;
+    private ICrudMapper $mapper;
 
     /**
-     * @psalm-var R $repository
+     * @psalm-var ICrudRepository $repository
      */
-    private object $repository;
+    private ICrudRepository $repository;
 
     /**
      * @psalm-param M $mapper
-     * @psalm-param R $repository
+     * @psalm-param ICrudRepository $repository
      */
-    public function __construct(object $mapper, object $repository)
+    public function __construct(ICrudMapper $mapper, ICrudRepository $repository)
     {
         $this->mapper = $mapper;
         $this->repository = $repository;
@@ -53,32 +55,16 @@ class AbstractCrudService implements ICrudService, IMapperService
         return $this->mapper->toDto($this->getOneEntity($id));
     }
 
-    public function saveEntity($dto)
-    {
-        throw new NotImplementException("Method saveEntity is not implement");
-    }
-
-    public function editEntity($dto, int $id)
-    {
-        throw new NotImplementException("Method editEntity is not implement");
-    }
-
     public function deleteEntity(int $id): void
     {
         $this->checkId($id);
         $this->repository->remove($this->entity, true);
     }
 
-    public function toEntity($dto)
-    {
-        throw new NotImplementException("Method toEntity is not implement");
-    }
-
-    public function toDto($entity)
-    {
-        throw new NotImplementException("Method toDto is not implement");
-    }
-
+    /**
+     * @psalm-param LimitResult $limitResult
+     * @psalm-return ArrayCollection<D>
+     */
     public function getByLimitResult(LimitResult $limitResult): ArrayCollection
     {
         $companiesArray = $this->repository->findByLimitResult($limitResult);
@@ -86,6 +72,7 @@ class AbstractCrudService implements ICrudService, IMapperService
     }
 
     /**
+     * @param int $id
      * @throws NotFoundException
      */
     protected function checkId(int $id): void

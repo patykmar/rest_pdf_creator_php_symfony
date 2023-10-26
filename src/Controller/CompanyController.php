@@ -23,24 +23,18 @@ final class CompanyController extends AbstractCrudController
 
     #[Route('', name: 'api_company_fetch_all', methods: IHttpMethod::GET)]
     public function fetchAll(
-        #[MapQueryParameter(
-            filter: FILTER_VALIDATE_INT, options: ['options' => ['min_range' => 0]]
-        )] int $firstItem = 0,
-        #[MapQueryParameter(
-            filter: FILTER_VALIDATE_INT, options: ['options' => ['min_range' => 1]]
-        )] int $maxItem = 10
+        #[MapQueryParameter(filter: FILTER_VALIDATE_INT, options: self::OPTIONS_MIN_RANGE_0)] int $firstItem = 0,
+        #[MapQueryParameter(filter: FILTER_VALIDATE_INT, options: self::OPTIONS_MIN_RANGE_1)] int $maxItem = 10
     ): JsonResponse
     {
-
-        $limitResult = new LimitResult($firstItem, $maxItem);
-        $companies = $this->companyService->getByLimitResult($limitResult);
+        $companies = $this->companyService->getByLimitResult(LimitResult::of($firstItem, $maxItem));
 
         return $this->json($companies);
     }
 
     #[Route(self::PARAMETER_ID,
         name: 'company_controller_fetch_by_id',
-        requirements: ['id' => '\d+'],
+        requirements: self::POSITIVE_INTEGER,
         methods: IHttpMethod::GET)]
     public function fetchById(int $id): JsonResponse
     {
@@ -54,7 +48,7 @@ final class CompanyController extends AbstractCrudController
 
     #[Route(self::PARAMETER_ID,
         name: 'company_controller_edit_by_id',
-        requirements: ['id' => '\d+'],
+        requirements: self::POSITIVE_INTEGER,
         methods: IHttpMethod::PUT)]
     public function editItem(int $id, #[MapRequestPayload] CompanyDto $dto): JsonResponse
     {

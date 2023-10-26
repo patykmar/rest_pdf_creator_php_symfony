@@ -2,8 +2,6 @@
 
 namespace App\Model\Dto;
 
-use Doctrine\Common\Collections\ArrayCollection;
-
 final class InvoiceDto
 {
     private int $supplierId;

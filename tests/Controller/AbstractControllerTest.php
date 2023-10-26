@@ -54,7 +54,7 @@ class AbstractControllerTest extends WebTestCase
      * PHPUnit return Warning in case of no test found, so I've created simple test
      * method for check if the protected field are initialized
     */
-    public function testInit()
+    public function testInit(): void
     {
         $this->assertNotNull($this->serializer);
         $this->assertNotNull($this->client);

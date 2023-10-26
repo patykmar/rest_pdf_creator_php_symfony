@@ -8,6 +8,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 
 final class InvoiceDataDto
 {
+    private ?int $id;
+    private ?string $description;
     private CompanyDto $supplier;
     private CompanyDto $subscriber;
     private ?string $paymentType = null;
@@ -21,6 +23,28 @@ final class InvoiceDataDto
      * @var ArrayCollection<InvoiceItemDto>
      */
     private ArrayCollection $invoiceItems;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function setId(?int $id): InvoiceDataDto
+    {
+        $this->id = $id;
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): InvoiceDataDto
+    {
+        $this->description = $description;
+        return $this;
+    }
 
     /**
      * @return CompanyDto
