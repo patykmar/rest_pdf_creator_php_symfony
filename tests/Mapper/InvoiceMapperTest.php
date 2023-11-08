@@ -5,6 +5,7 @@ namespace App\Tests\Mapper;
 use App\Config\Mapper\InvoiceMapperConfig;
 use App\DataFixtures\CompanyFixtures;
 use App\DataFixtures\InvoiceFixtures;
+use App\DataFixtures\InvoiceItemFixtures;
 use App\Entity\Company;
 use App\Entity\Invoice;
 use App\Entity\InvoiceItem;
@@ -12,8 +13,10 @@ use App\Mapper\InvoiceMapper;
 use App\Model\DataDto\InvoiceDataDto;
 use App\Model\Dto\InvoiceItemDto;
 use App\Tests\AbstractKernelTestCase;
+use App\Tests\Mapper\Trait\CommonAsserTrait;
 use App\Tests\Mock\Dto\DtoMock;
 use App\Trait\MapperUtilsTrait;
+use AutoMapperPlus\Exception\UnregisteredMappingException;
 use Exception;
 
 class InvoiceMapperTest extends AbstractKernelTestCase
@@ -28,9 +31,12 @@ class InvoiceMapperTest extends AbstractKernelTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->invoiceMapper = $this->container->get(InvoiceMapper::class);
+        $this->mapper = $this->container->get(InvoiceMapper::class);
     }
 
+    /**
+     * @throws UnregisteredMappingException
+     */
     public function testInvoiceDataDtoToEntity()
     {
         $invoiceDataDto = DtoMock::getInvoiceDataDto();
@@ -64,9 +70,16 @@ class InvoiceMapperTest extends AbstractKernelTestCase
 
     }
 
+    /**
+     * @throws UnregisteredMappingException
+     */
     public function testInvoiceToInvoiceDataDto()
     {
         $sourceInvoice = InvoiceFixtures::createEntity(1, CompanyFixtures::createCompany(), CompanyFixtures::createCompany(2));
+        for ($i = 0; $i < InvoiceItemFixtures::REFERENCE_COUNT; $i++) {
+            $sourceInvoice->addInvoiceItemEntity(InvoiceItemFixtures::creatEntity($i, $sourceInvoice));
+        }
+
         $resultInvoiceDataDto = $this->mapper->toDto($sourceInvoice);
 
         $this->assertInstanceOf(InvoiceDataDto::class, $resultInvoiceDataDto);
