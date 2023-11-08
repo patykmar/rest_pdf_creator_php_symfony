@@ -7,7 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InvoiceItemRepository::class)]
-class InvoiceItem
+class InvoiceItem implements IEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -26,12 +26,19 @@ class InvoiceItem
     #[ORM\Column]
     private ?float $unitCount = null;
 
-    #[ORM\ManyToOne(inversedBy: 'invoiceItemEntities')]
-    private ?Invoice $invoice = null;
+    #[ORM\ManyToOne(targetEntity: Invoice::class, cascade: ['persist'], inversedBy: 'invoiceItems')]
+    #[ORM\JoinColumn(name: 'invoice_id', referencedColumnName: 'id')]
+    private Invoice $invoice;
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(?int $id): InvoiceItem
+    {
+        $this->id = $id;
+        return $this;
     }
 
     public function getVat(): ?int
@@ -42,7 +49,6 @@ class InvoiceItem
     public function setVat(int $vat): static
     {
         $this->vat = $vat;
-
         return $this;
     }
 
@@ -54,7 +60,6 @@ class InvoiceItem
     public function setItemName(string $itemName): static
     {
         $this->itemName = $itemName;
-
         return $this;
     }
 
@@ -66,7 +71,6 @@ class InvoiceItem
     public function setPrice(float $price): static
     {
         $this->price = $price;
-
         return $this;
     }
 
@@ -87,10 +91,9 @@ class InvoiceItem
         return $this->invoice;
     }
 
-    public function setInvoice(?Invoice $invoice): static
+    public function setInvoice(Invoice $invoice): static
     {
         $this->invoice = $invoice;
-
         return $this;
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Mapper;
+namespace App\Config\Mapper;
 
 use App\Entity\Company;
 use App\Model\Dto\AddressDto;

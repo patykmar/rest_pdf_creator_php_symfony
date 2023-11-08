@@ -5,6 +5,7 @@ namespace App\Trait;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use ReflectionException;
 use ReflectionMethod;
 
@@ -38,7 +39,7 @@ trait MapperUtilsTrait
     /**
      * @throws ReflectionException
      */
-    public function mappingCollection(ArrayCollection $collection, string $type, string $mappingMethod): ArrayCollection
+    public function mappingCollection(Collection $collection, string $type, string $mappingMethod): ArrayCollection
     {
         if ($collection->isEmpty()) {
             return new ArrayCollection();

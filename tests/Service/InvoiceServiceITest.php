@@ -83,7 +83,7 @@ class InvoiceServiceITest extends KernelTestCase
         $this->assertNotNull($invoice->getCurrency());
         $this->assertSame(InvoiceMapperConfig::CURRENCY, $invoice->getCurrency());
 
-        $invoiceItemEntities = $invoice->getInvoiceItemEntities();
+        $invoiceItemEntities = $invoice->getInvoiceItems();
 
         $this->assertNotEmpty($invoiceItemEntities);
 

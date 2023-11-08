@@ -1,0 +1,73 @@
+{
+  "supplierId": 1,
+  "subscriberId": 2,
+  "paymentType": "cache",
+  "description": "Some description",
+  "created": 123556,
+  "dueDay": 14,
+  "vs": "20230001",
+  "ks": "0001",
+  "currency": "CZK",
+  "invoiceItems": [
+    {
+      "vat": 0,
+      "itemName": "Invoice item 01",
+      "price": 10010.1,
+      "unitCount": 0.1
+    },
+    {
+      "vat": 0,
+      "itemName": "Invoice item 02",
+      "price": 10020.2,
+      "unitCount": 0.2
+    },
+    {
+      "vat": 0,
+      "itemName": "Invoice item 03",
+      "price": 10030.3,
+      "unitCount": 0.3
+    },
+    {
+      "vat": 0,
+      "itemName": "Invoice item 04",
+      "price": 10040.4,
+      "unitCount": 0.4
+    },
+    {
+      "vat": 0,
+      "itemName": "Invoice item 05",
+      "price": 10050.5,
+      "unitCount": 0.5
+    },
+    {
+      "vat": 0,
+      "itemName": "Invoice item 06",
+      "price": 10060.6,
+      "unitCount": 0.6
+    },
+    {
+      "vat": 0,
+      "itemName": "Invoice item 07",
+      "price": 10070.7,
+      "unitCount": 0.7
+    },
+    {
+      "vat": 0,
+      "itemName": "Invoice item 08",
+      "price": 10080.8,
+      "unitCount": 0.8
+    },
+    {
+      "vat": 0,
+      "itemName": "Invoice item 09",
+      "price": 10090.9,
+      "unitCount": 0.9
+    },
+    {
+      "vat": 0,
+      "itemName": "Invoice item 10",
+      "price": 10100.10,
+      "unitCount": 1.0
+    }
+  ]
+}

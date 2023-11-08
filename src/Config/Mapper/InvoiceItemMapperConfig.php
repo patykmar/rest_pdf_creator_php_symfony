@@ -18,5 +18,6 @@ class InvoiceItemMapperConfig implements AutoMapperConfiguratorInterface
         $config->registerMapping(InvoiceItemDto::class, InvoiceItem::class);
         $config->registerMapping(InvoiceItemDto::class, InvoiceItemDto::class);
         $config->registerMapping(DataType::ARRAY, InvoiceItemDto::class);
+        $config->registerMapping(InvoiceItem::class, InvoiceItemDto::class);
     }
 }

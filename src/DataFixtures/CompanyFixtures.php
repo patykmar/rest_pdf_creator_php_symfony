@@ -3,11 +3,14 @@
 namespace App\DataFixtures;
 
 use App\Entity\Company;
+use App\Trait\MockUtilsTrait;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
 class CompanyFixtures extends Fixture
 {
+    use MockUtilsTrait;
+
     public const REFERENCE_COUNT = 10;
     public const COMPANY_01 = 'Company-1';
     public const COMPANY_02 = 'Company-2';
@@ -20,7 +23,7 @@ class CompanyFixtures extends Fixture
     public const COMPANY_09 = 'Company-9';
     public const COMPANY_10 = 'Company-10';
 
-    private function getReferences(): array
+    public static function getReferences(): array
     {
         return [
             self::COMPANY_01, self::COMPANY_02, self::COMPANY_03, self::COMPANY_04, self::COMPANY_05,
@@ -32,7 +35,7 @@ class CompanyFixtures extends Fixture
     {
         for ($i = 0; $i < self::REFERENCE_COUNT; $i++) {
             $company = self::createCompany($i + 1);
-            $this->setReference($this->getReferences()[$i], $company);
+            $this->setReference(self::getReferences()[$i], $company);
             $manager->persist($company);
             unset($company);
         }
@@ -41,19 +44,22 @@ class CompanyFixtures extends Fixture
 
     public static function createCompany(int $id = 1): Company
     {
+        $twoDigitsId = self::twoDigitWithZero($id);
         $company = new Company();
         $company
-            ->setName("Company $id name ")
+            ->setName("Company $id name")
             ->setCountry("Company $id country name")
             ->setStreet("Company $id street name")
             ->setCity("Company $id city name")
-            ->setZipCode("Company $id zip code")
-            ->setCompanyId("234567890" . $id)
-            ->setVatNumber("123456789" . $id)
-            ->setBankAccountNumber($id . "234-1234567890/1234")
-            ->setIban("CZ000012341234567890123" . $id)
-            ->setSwift("AIRACZPP123456789" . $id)
-            ->setSignature("CZ0000123412345678901234" . $id);
+            ->setZipCode("123" . $twoDigitsId)
+            ->setCompanyId("234567890" . $twoDigitsId)
+            ->setVatNumber("123456789" . $twoDigitsId)
+            ->setBankAccountNumber(sprintf("12%s-123456785%s/12%s", $twoDigitsId, $twoDigitsId, $twoDigitsId))
+            ->setIban("CZ000012341234567890123" . $twoDigitsId)
+            ->setSwift("AIRACZPP123456789" . $twoDigitsId)
+            ->setSignature("CZ0000123412345678901234" . $twoDigitsId);
+        unset($twoDigitsId);
         return $company;
     }
+
 }

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Invoice;
+use App\Trait\CrudRepositoryTrait;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -13,30 +14,16 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Invoice|null findOneBy(array $criteria, array $orderBy = null)
  * @method Invoice[]    findAll()
  * @method Invoice[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method void         save(Invoice $invoice, bool $flush = true);
+ * @method Invoice|null findLastEntity()
  */
-class InvoiceRepository extends ServiceEntityRepository
+class InvoiceRepository extends ServiceEntityRepository implements ICrudRepository
 {
+    use CrudRepositoryTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Invoice::class);
-    }
-
-    public function save(Invoice $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    public function remove(Invoice $entity, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($entity);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
     }
 
 //    /**
@@ -63,4 +50,5 @@ class InvoiceRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
 }

@@ -8,8 +8,13 @@ use App\Model\Dto\CompanyDto;
 use App\Model\Dto\InvoiceDto;
 use AutoMapperPlus\AutoMapperInterface;
 use AutoMapperPlus\Exception\UnregisteredMappingException;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
-class InvoiceMapper
+/**
+ * @implements ICrudMapper<Invoice, InvoiceDataDto>
+ */
+class InvoiceMapper implements ICrudMapper
 {
     public function __construct(
         private readonly AutoMapperInterface $autoMapper
@@ -18,11 +23,12 @@ class InvoiceMapper
     }
 
     /**
+     * @psalm-param InvoiceDto $dto
      * @throws UnregisteredMappingException
      */
-    public function toInvoice(InvoiceDataDto $invoiceDto): Invoice
+    public function toEntity($dto): Invoice
     {
-        return $this->autoMapper->map($invoiceDto, Invoice::class);
+        return $this->autoMapper->map($dto, Invoice::class);
     }
 
     /**
@@ -35,5 +41,38 @@ class InvoiceMapper
         $invoiceDataDto->setSupplier($supplier);
         $invoiceDataDto->setSubscriber($subscriber);
         return $invoiceDataDto;
+    }
+
+    /**
+     * @psalm-param Invoice $entity
+     * @psalm-return InvoiceDataDto
+     * @throws UnregisteredMappingException
+     */
+    public function toDto($entity): InvoiceDataDto
+    {
+        return $this->autoMapper->map($entity, InvoiceDataDto::class);
+    }
+
+    public function toDtoCollection(Collection $entities): Collection
+    {
+        return new ArrayCollection($this->autoMapper->mapMultiple($entities, InvoiceDataDto::class));
+    }
+
+    /**
+     * @param Invoice $entityFromDb
+     * @param Invoice $entityFromConsumer
+     */
+    public function mappingBeforeEditEntity($entityFromDb, $entityFromConsumer): Invoice
+    {
+        return $entityFromDb
+            ->setSupplier($entityFromConsumer->getSupplier())
+            ->setSubscriber($entityFromConsumer->getSubscriber())
+            ->setVs($entityFromConsumer->getVs())
+            ->setKs($entityFromConsumer->getKs())
+            ->setDescription($entityFromConsumer->getDescription())
+            ->setCurrency($entityFromConsumer->getCurrency())
+            ->setPaymentType($entityFromConsumer->getPaymentType())
+            ->setDueDay($entityFromConsumer->getDueDay())
+            ->setInvoiceItems($entityFromConsumer->getInvoiceItems());
     }
 }

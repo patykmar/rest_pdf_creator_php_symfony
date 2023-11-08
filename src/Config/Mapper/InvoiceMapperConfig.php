@@ -7,6 +7,7 @@ use App\Entity\Invoice;
 use App\Entity\InvoiceItem;
 use App\Exceptions\InvalidArgumentException;
 use App\Model\DataDto\InvoiceDataDto;
+use App\Model\Dto\CompanyDto;
 use App\Model\Dto\InvoiceDto;
 use App\Model\Dto\InvoiceItemDto;
 use App\Trait\MapperUtilsTrait;
@@ -50,7 +51,7 @@ class InvoiceMapperConfig implements AutoMapperConfiguratorInterface
             })
             ->forMember('supplier', Operation::mapTo(Company::class))
             ->forMember('subscriber', Operation::mapTo(Company::class))
-            ->forMember('invoiceItemEntities', function (InvoiceDataDto $invoiceDataDto, AutoMapperInterface $mapper) {
+            ->forMember('invoiceItems', function (InvoiceDataDto $invoiceDataDto, AutoMapperInterface $mapper) {
                 return new ArrayCollection(
                     $mapper->mapMultiple($invoiceDataDto->getInvoiceItems(), InvoiceItem::class)
                 );
@@ -58,9 +59,28 @@ class InvoiceMapperConfig implements AutoMapperConfiguratorInterface
 
         $config->registerMapping(InvoiceDto::class, InvoiceDataDto::class)
             ->forMember('invoiceItems', function (InvoiceDto $invoiceDto, AutoMapperInterface $mapper) {
+                return $mapper->mapMultiple($invoiceDto->getInvoiceItems(), InvoiceItemDto::class);
+            });
+        $config->registerMapping(InvoiceDto::class, Invoice::class)
+            ->forMember('supplier', Operation::ignore())
+            ->forMember('subscriber', Operation::ignore())
+            ->forMember('created', function (InvoiceDto $invoiceDto) {
+                return $this->unixTimeToDateTime($invoiceDto->getCreated());
+            })
+            ->forMember('invoiceItems', function (InvoiceDto $invoiceDto, AutoMapperInterface $mapper) {
                 return new ArrayCollection(
-                    $mapper->mapMultiple($invoiceDto->getInvoiceItems(), InvoiceItemDto::class)
+                    $mapper->mapMultiple($invoiceDto->getInvoiceItems(), InvoiceItem::class)
                 );
+            });
+
+        $config->registerMapping(Invoice::class, InvoiceDataDto::class)
+            ->forMember('supplier', Operation::mapTo(CompanyDto::class))
+            ->forMember('subscriber', Operation::mapTo(CompanyDto::class))
+            ->forMember('created', function (Invoice $invoice) {
+                return date_timestamp_get($invoice->getCreated());
+            })
+            ->forMember('invoiceItems', function (Invoice $invoice, AutoMapperInterface $mapper) {
+                return $mapper->mapMultiple($invoice->getInvoiceItems(), InvoiceItemDto::class);
             });
     }
 

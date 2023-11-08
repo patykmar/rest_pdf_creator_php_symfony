@@ -1,0 +1,15 @@
+{
+  "name": "Fake company name 666",
+  "address": {
+    "country": "Fake country 666",
+    "street": "Fake street 666",
+    "city": "Fake city 666",
+    "zipCode": "67890"
+  },
+  "companyId": "6664567890",
+  "vatNumber": "6665678901",
+  "bankAccountNumber": "234-567890888/1234",
+  "swift": "AIRACZPP12345678666",
+  "iban": "CZ6508000000192000145666",
+  "signature": "CZ0000123412345678901666"
+}

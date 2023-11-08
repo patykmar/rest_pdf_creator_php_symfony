@@ -10,7 +10,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InvoiceRepository::class)]
-final class Invoice
+class Invoice implements IEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -38,25 +38,33 @@ final class Invoice
     #[ORM\Column(length: 3)]
     private ?string $currency = null;
 
-    #[ORM\OneToMany(mappedBy: 'invoice', targetEntity: InvoiceItem::class)]
-    private Collection $invoiceItemEntities;
+    #[ORM\OneToMany(
+        mappedBy: 'invoice', targetEntity: InvoiceItem::class, cascade: ["persist"], fetch: "EAGER", orphanRemoval: true
+    )]
+    private Collection $invoiceItems;
 
-    #[ORM\ManyToOne(inversedBy: 'supplierInvoices')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Company::class, cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(name: 'supplier_id', referencedColumnName: 'id', nullable: false)]
     private Company $supplier;
 
-    #[ORM\ManyToOne(inversedBy: 'subscriberInvoices')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Company::class, cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(name: 'subscriber_id', referencedColumnName: 'id', nullable: false)]
     private Company $subscriber;
 
     public function __construct()
     {
-        $this->invoiceItemEntities = new ArrayCollection();
+        $this->invoiceItems = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(?int $id): Invoice
+    {
+        $this->id = $id;
+        return $this;
     }
 
     public function getDescription(): ?string
@@ -157,15 +165,15 @@ final class Invoice
     /**
      * @psalm-return Collection<InvoiceItem>
      */
-    public function getInvoiceItemEntities(): Collection
+    public function getInvoiceItems(): Collection
     {
-        return $this->invoiceItemEntities;
+        return $this->invoiceItems;
     }
 
     public function addInvoiceItemEntity(InvoiceItem $invoiceItemEntity): Invoice
     {
-        if (!$this->invoiceItemEntities->contains($invoiceItemEntity)) {
-            $this->invoiceItemEntities->add($invoiceItemEntity);
+        if (!$this->invoiceItems->contains($invoiceItemEntity)) {
+            $this->invoiceItems->add($invoiceItemEntity);
             $invoiceItemEntity->setInvoice($this);
         }
 
@@ -174,13 +182,13 @@ final class Invoice
 
     public function setInvoiceItems(Collection $invoiceItems): self
     {
-        $this->invoiceItemEntities = $invoiceItems;
+        $this->invoiceItems = $invoiceItems;
         return $this;
     }
 
     public function removeInvoiceItemEntity(InvoiceItem $invoiceItemEntity): Invoice
     {
-        if ($this->invoiceItemEntities->removeElement($invoiceItemEntity)) {
+        if ($this->invoiceItems->removeElement($invoiceItemEntity)) {
             // set the owning side to null (unless already changed)
             if ($invoiceItemEntity->getInvoice() === $this) {
                 $invoiceItemEntity->setInvoice(null);

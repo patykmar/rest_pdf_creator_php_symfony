@@ -3,61 +3,30 @@
 namespace App\Mapper;
 
 use App\Entity\Company;
+use App\Entity\IEntity;
 use App\Model\Dto\CompanyDto;
 use App\Trait\MapperUtilsTrait;
+use AutoMapperPlus\AutoMapperInterface;
+use AutoMapperPlus\Exception\UnregisteredMappingException;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use ReflectionException;
 
-class CompanyMapper
+class CompanyMapper implements ICrudMapper
 {
-
     use MapperUtilsTrait;
 
     public function __construct(
-        private readonly AddressMapper $addressMapper,
+        private readonly AutoMapperInterface $mapper
     )
     {
     }
 
-    public function toEntity(CompanyDto $dto): Company
-    {
-        $company = new Company();
-        $company->setName($dto->getName())
-            ->setCountry($dto->getAddress()->getCountry())
-            ->setStreet($dto->getAddress()->getStreet())
-            ->setCity($dto->getAddress()->getCity())
-            ->setZipCode($dto->getAddress()->getZipCode())
-            ->setCompanyId($dto->getCompanyId())
-            ->setVatNumber($dto->getVatNumber())
-            ->setBankAccountNumber($dto->getBankAccountNumber())
-            ->setIban($dto->getIban())
-            ->setSwift($dto->getSwift())
-            ->setSignature($dto->getSignature());
-        return $company;
-    }
-
-    public function toDto(Company $entity): CompanyDto
-    {
-        $companyDto = new CompanyDto();
-        $companyDto
-            ->setId($entity->getId())
-            ->setName($entity->getName())
-            ->setIban($entity->getIban())
-            ->setCompanyId($entity->getCompanyId())
-            ->setVatNumber($entity->getVatNumber())
-            ->setBankAccountNumber($entity->getBankAccountNumber())
-            ->setIban($entity->getIban())
-            ->setSwift($entity->getSwift())
-            ->setSignature($entity->getSignature())
-            ->setAddress($this->addressMapper->toDto($entity));
-        return $companyDto;
-    }
-
     /**
-     * @psalm-param ArrayCollection<Company> $entities
-     * @psalm-return ArrayCollection<CompanyDto>
+     * @psalm-param Collection<Company> $entities
+     * @psalm-return Collection<CompanyDto>
      */
-    public function toDtoCollection(ArrayCollection $entities): ArrayCollection
+    public function toDtoCollection(Collection $entities): Collection
     {
         try {
             return $this->mappingCollection($entities, Company::class, 'toDto');
@@ -66,4 +35,56 @@ class CompanyMapper
         }
     }
 
+    /**
+     * @param CompanyDto $dto
+     * @throws UnregisteredMappingException
+     */
+    public function toEntity($dto): Company
+    {
+        return $this->mapper->map($dto, Company::class);
+    }
+
+    /**
+     * @throws UnregisteredMappingException
+     */
+    public function toDto($entity): CompanyDto
+    {
+        return $this->mapper->map($entity, CompanyDto::class);
+    }
+
+    /**
+     * @param IEntity|Company $entityFromDb
+     * @param Company $entityFromConsumer
+     * @return Company
+     */
+    public function mappingBeforeEditEntity($entityFromDb, $entityFromConsumer): Company
+    {
+        return $entityFromDb
+            ->setName($entityFromConsumer->getName())
+            ->setCountry($entityFromConsumer->getCountry())
+            ->setStreet($entityFromConsumer->getStreet())
+            ->setCity($entityFromConsumer->getCity())
+            ->setZipCode($entityFromConsumer->getZipCode())
+            ->setCompanyId($entityFromConsumer->getCompanyId())
+            ->setVatNumber($entityFromConsumer->getVatNumber())
+            ->setBankAccountNumber($entityFromConsumer->getBankAccountNumber())
+            ->setIban($entityFromConsumer->getIban())
+            ->setSwift($entityFromConsumer->getSwift())
+            ->setSignature($entityFromConsumer->getSignature());
+    }
+
+    /**
+     * This mapping method restructured List<Company>
+     * to Map<int, Company> where key is ID of company
+     * @param Company[] $companies
+     * @return Company[] [id => Company]
+     */
+    public function mappingArrayOfCompaniesToMap(array $companies): array
+    {
+        $result = array();
+        foreach ($companies as $company) {
+            $result[$company->getId()] = $company;
+        }
+        return $result;
+    }
 }

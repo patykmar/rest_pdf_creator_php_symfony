@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Model\Dto\CompanyDto;
 use App\Model\LimitResult;
 use App\Service\CompanyService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
@@ -16,31 +17,27 @@ use Throwable;
 final class CompanyController extends AbstractCrudController
 {
     public function __construct(
-        private readonly CompanyService $companyService
+        private readonly CompanyService    $companyService,
+        protected readonly LoggerInterface $loggerInterface
     )
     {
+        parent::__construct($loggerInterface);
     }
 
     #[Route('', name: 'api_company_fetch_all', methods: IHttpMethod::GET)]
     public function fetchAll(
-        #[MapQueryParameter(
-            filter: FILTER_VALIDATE_INT, options: ['options' => ['min_range' => 0]]
-        )] int $firstItem = 0,
-        #[MapQueryParameter(
-            filter: FILTER_VALIDATE_INT, options: ['options' => ['min_range' => 1]]
-        )] int $maxItem = 10
+        #[MapQueryParameter(filter: FILTER_VALIDATE_INT, options: self::OPTIONS_MIN_RANGE_0)] int $firstItem = 0,
+        #[MapQueryParameter(filter: FILTER_VALIDATE_INT, options: self::OPTIONS_MIN_RANGE_1)] int $maxItem = 10
     ): JsonResponse
     {
-
-        $limitResult = new LimitResult($firstItem, $maxItem);
-        $companies = $this->companyService->getByLimitResult($limitResult);
+        $companies = $this->companyService->getByLimitResult(LimitResult::of($firstItem, $maxItem));
 
         return $this->json($companies);
     }
 
     #[Route(self::PARAMETER_ID,
         name: 'company_controller_fetch_by_id',
-        requirements: ['id' => '\d+'],
+        requirements: self::POSITIVE_INTEGER,
         methods: IHttpMethod::GET)]
     public function fetchById(int $id): JsonResponse
     {
@@ -54,7 +51,7 @@ final class CompanyController extends AbstractCrudController
 
     #[Route(self::PARAMETER_ID,
         name: 'company_controller_edit_by_id',
-        requirements: ['id' => '\d+'],
+        requirements: self::POSITIVE_INTEGER,
         methods: IHttpMethod::PUT)]
     public function editItem(int $id, #[MapRequestPayload] CompanyDto $dto): JsonResponse
     {
@@ -69,8 +66,12 @@ final class CompanyController extends AbstractCrudController
     #[Route('', name: 'company_controller_new_item', methods: IHttpMethod::POST)]
     public function newItem(#[MapRequestPayload] CompanyDto $companyDto): JsonResponse
     {
-        $savedCompany = $this->companyService->saveEntity($companyDto);
-        return $this->json($savedCompany, Response::HTTP_CREATED);
+        try {
+            $savedCompany = $this->companyService->saveEntity($companyDto);
+            return $this->json($savedCompany, Response::HTTP_CREATED);
+        } catch (Throwable $throwable) {
+            return $this->handleErrorExceptions($throwable);
+        }
     }
 
     #[Route(self::PARAMETER_ID, name: 'company_controller_delete_item', methods: IHttpMethod::DELETE)]

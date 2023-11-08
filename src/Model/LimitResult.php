@@ -8,9 +8,9 @@ class LimitResult
      * @param int $first
      * @param int $max
      */
-    public function __construct(
-        private readonly int $first = 0,
-        private readonly int $max = 20,
+    private function __construct(
+        private readonly int $first,
+        private readonly int $max,
     )
     {
     }
@@ -23,6 +23,11 @@ class LimitResult
     public function getMax(): int
     {
         return $this->max;
+    }
+
+    public static function of(int $first = 0, int $max = 20): LimitResult
+    {
+        return new LimitResult($first, $max);
     }
 
 }
