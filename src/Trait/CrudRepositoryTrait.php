@@ -47,6 +47,6 @@ trait CrudRepositoryTrait
      */
     public function findLastEntity()
     {
-        return $this->findOneBy([], ['id' => 'DSC']);
+        return $this->findOneBy([], ['id' => 'DESC']);
     }
 }

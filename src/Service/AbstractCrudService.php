@@ -4,11 +4,11 @@ namespace App\Service;
 
 use App\Entity\IEntity;
 use App\Exceptions\NotFoundException;
-use App\Exceptions\NotImplementException;
 use App\Mapper\ICrudMapper;
 use App\Model\LimitResult;
 use App\Repository\ICrudRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * @template E of object Entity data model
@@ -19,26 +19,14 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 abstract class AbstractCrudService implements ICrudService
 {
-
     protected ?IEntity $entity;
-    /**
-     * @psalm-var M $mapper
-     */
-    private ICrudMapper $mapper;
 
-    /**
-     * @psalm-var ICrudRepository $repository
-     */
-    private ICrudRepository $repository;
-
-    /**
-     * @psalm-param M $mapper
-     * @psalm-param ICrudRepository $repository
-     */
-    public function __construct(ICrudMapper $mapper, ICrudRepository $repository)
+    public function __construct(
+        protected ICrudMapper $mapper,
+        protected ICrudRepository $repository,
+        protected string $notFoundErrorMessage
+    )
     {
-        $this->mapper = $mapper;
-        $this->repository = $repository;
     }
 
     /**
@@ -63,7 +51,7 @@ abstract class AbstractCrudService implements ICrudService
 
     /**
      * @psalm-param LimitResult $limitResult
-     * @psalm-return ArrayCollection<D>
+     * @psalm-return Collection<D>
      */
     public function getByLimitResult(LimitResult $limitResult): ArrayCollection
     {
@@ -79,7 +67,7 @@ abstract class AbstractCrudService implements ICrudService
     {
         $this->entity = $this->repository->find($id);
         if (is_null($this->entity)) {
-            throw new NotFoundException(sprintf("Company with id: %d not found", $id));
+            throw new NotFoundException(sprintf($this->notFoundErrorMessage, $id));
         }
     }
 }

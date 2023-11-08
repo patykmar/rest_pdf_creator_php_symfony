@@ -43,12 +43,12 @@ class Invoice implements IEntity
     )]
     private Collection $invoiceItems;
 
-    #[ORM\ManyToOne(fetch: "EAGER", inversedBy: 'supplierInvoices')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Company::class, cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(name: 'supplier_id', referencedColumnName: 'id', nullable: false)]
     private Company $supplier;
 
-    #[ORM\ManyToOne(fetch: "EAGER", inversedBy: 'subscriberInvoices')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: Company::class, cascade: ["persist"], fetch: "EAGER")]
+    #[ORM\JoinColumn(name: 'subscriber_id', referencedColumnName: 'id', nullable: false)]
     private Company $subscriber;
 
     public function __construct()

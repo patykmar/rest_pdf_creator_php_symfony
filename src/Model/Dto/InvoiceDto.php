@@ -2,10 +2,17 @@
 
 namespace App\Model\Dto;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
 final class InvoiceDto
 {
+    #[Assert\NotBlank]
     private int $supplierId;
+    #[Assert\NotBlank]
     private int $subscriberId;
+    #[Assert\NotBlank]
+    private string $description;
+    #[Assert\NotBlank]
     private string $paymentType;
     private ?int $created = null;
     private ?int $dueDay = null;
@@ -94,6 +101,12 @@ final class InvoiceDto
     {
         return $this->invoiceItems;
     }
+
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
 
     /**
      * @param int $supplierId
@@ -187,6 +200,12 @@ final class InvoiceDto
     public function addInvoiceItem(InvoiceItemDto $invoiceItemDto): void
     {
         $this->invoiceItems[] = $invoiceItemDto;
+    }
+
+    public function setDescription(string $description): InvoiceDto
+    {
+        $this->description = $description;
+        return $this;
     }
 
 }

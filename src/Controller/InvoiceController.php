@@ -20,11 +20,11 @@ use Throwable;
 class InvoiceController extends AbstractCrudController
 {
     public function __construct(
-        private readonly InvoiceService $invoiceService,
-        protected LoggerInterface       $logger
+        private readonly InvoiceService    $invoiceService,
+        protected readonly LoggerInterface $iLogger
     )
     {
-        parent::__construct($logger);
+        parent::__construct($iLogger);
     }
 
     #[Route('', name: 'invoice_controller_new_item', methods: self::POST)]
@@ -80,9 +80,15 @@ class InvoiceController extends AbstractCrudController
         }
     }
 
+    #[Route(self::PARAMETER_ID, name: 'invoice_controller_delete_item', methods: self::DELETE)]
     public function deleteItem(int $id): JsonResponse
     {
-        return $this->handleNotImplementMethod();
+        try {
+            $this->invoiceService->deleteEntity($id);
+            return $this->json('[]', Response::HTTP_NO_CONTENT);
+        } catch (Throwable $e) {
+            return $this->handleErrorExceptions($e);
+        }
     }
 
 

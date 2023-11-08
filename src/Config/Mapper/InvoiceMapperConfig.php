@@ -59,8 +59,17 @@ class InvoiceMapperConfig implements AutoMapperConfiguratorInterface
 
         $config->registerMapping(InvoiceDto::class, InvoiceDataDto::class)
             ->forMember('invoiceItems', function (InvoiceDto $invoiceDto, AutoMapperInterface $mapper) {
+                return $mapper->mapMultiple($invoiceDto->getInvoiceItems(), InvoiceItemDto::class);
+            });
+        $config->registerMapping(InvoiceDto::class, Invoice::class)
+            ->forMember('supplier', Operation::ignore())
+            ->forMember('subscriber', Operation::ignore())
+            ->forMember('created', function (InvoiceDto $invoiceDto) {
+                return $this->unixTimeToDateTime($invoiceDto->getCreated());
+            })
+            ->forMember('invoiceItems', function (InvoiceDto $invoiceDto, AutoMapperInterface $mapper) {
                 return new ArrayCollection(
-                    $mapper->mapMultiple($invoiceDto->getInvoiceItems(), InvoiceItemDto::class)
+                    $mapper->mapMultiple($invoiceDto->getInvoiceItems(), InvoiceItem::class)
                 );
             });
 
@@ -71,9 +80,7 @@ class InvoiceMapperConfig implements AutoMapperConfiguratorInterface
                 return date_timestamp_get($invoice->getCreated());
             })
             ->forMember('invoiceItems', function (Invoice $invoice, AutoMapperInterface $mapper) {
-                return new ArrayCollection(
-                    $mapper->mapMultiple($invoice->getInvoiceItems(), InvoiceItemDto::class)
-                );
+                return $mapper->mapMultiple($invoice->getInvoiceItems(), InvoiceItemDto::class);
             });
     }
 

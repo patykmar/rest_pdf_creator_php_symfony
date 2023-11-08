@@ -2,11 +2,14 @@
 
 namespace App\Tests\Controller;
 
+use App\Controller\IHttpMethod;
 use App\Tests\Controller\trait\JsonTestUtilsTrait;
 use App\Tests\Controller\trait\MockTrait;
+use App\Tests\Mapper\Trait\CommonAsserTrait;
 use App\Tests\Mock\Entity\EntityMock;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -20,17 +23,15 @@ class AbstractControllerTest extends WebTestCase
 {
     use MockTrait;
     use JsonTestUtilsTrait;
+    use CommonAsserTrait;
 
     public const JSON = "json";
-    public const METHOD_NAME_SAVE = 'save';
-    public const METHOD_NAME_FIND = 'find';
-    public const METHOD_NAME_REMOVE = 'remove';
-    public const METHOD_NAME_FIND_ONE_BY = 'findOneBy';
 
     protected Serializer $serializer;
     protected KernelBrowser $client;
     protected EntityMock $entityConstants;
     protected ContainerInterface $container;
+    protected string $uri;
 
     protected function setUp(): void
     {
@@ -53,13 +54,39 @@ class AbstractControllerTest extends WebTestCase
     /**
      * PHPUnit return Warning in case of no test found, so I've created simple test
      * method for check if the protected field are initialized
-    */
+     */
     public function testInit(): void
     {
         $this->assertNotNull($this->serializer);
         $this->assertNotNull($this->client);
         $this->assertNotNull($this->entityConstants);
         $this->assertNotNull($this->container);
+    }
+
+    protected function requestPost(string $content): void
+    {
+        $this->client->request(IHttpMethod::POST, $this->uri, [], [], [], $content);
+        $this->assertResponseIsSuccessful();
+    }
+
+    protected function requestPut(int $id, string $content): void
+    {
+        $this->client->request(IHttpMethod::PUT, $this->uri . "/$id", [], [], [], $content);
+        $this->assertResponseIsSuccessful();
+    }
+
+    protected function requestGetById(int $id): void
+    {
+        $this->client->request(IHttpMethod::GET, $this->uri . "/$id");
+        $this->assertResponseIsSuccessful();
+    }
+
+    protected function requestDelete(int $id): void
+    {
+        $this->client->request(IHttpMethod::DELETE, $this->uri . "/$id");
+        $response = $this->client->getResponse();
+        $this->assertNotNull($response);
+        $this->assertSame(Response::HTTP_NO_CONTENT, $response->getStatusCode());
     }
 
 }

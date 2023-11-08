@@ -20,7 +20,7 @@ abstract class AbstractCrudController extends AbstractController implements ICru
 
     protected function handleErrorExceptions(Throwable $throwable): JsonResponse
     {
-        $this->logger->error($throwable->getMessage());
+        $this->logger->error($throwable->getMessage(), $throwable->getTrace());
         //TODO: most probably is better solution for error handling by Symfony. Try refactor it later
         if ($throwable instanceof NotFoundException) {
             return $this->json([

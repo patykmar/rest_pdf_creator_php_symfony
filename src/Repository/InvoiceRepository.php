@@ -14,6 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Invoice|null findOneBy(array $criteria, array $orderBy = null)
  * @method Invoice[]    findAll()
  * @method Invoice[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method void         save(Invoice $invoice, bool $flush = true);
  * @method Invoice|null findLastEntity()
  */
 class InvoiceRepository extends ServiceEntityRepository implements ICrudRepository

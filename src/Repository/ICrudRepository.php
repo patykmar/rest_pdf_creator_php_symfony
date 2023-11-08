@@ -7,6 +7,9 @@ use App\Entity\IEntity;
 use App\Model\LimitResult;
 use Doctrine\Common\Collections\Collection;
 
+/**
+ * @template E entity object
+ */
 interface ICrudRepository
 {
     function findByLimitResult(LimitResult $limitResult): Collection;
@@ -17,5 +20,8 @@ interface ICrudRepository
 
     function remove(IEntity $entity, bool $flush = false): void;
 
+    /**
+     * @return E
+     */
     function findLastEntity();
 }

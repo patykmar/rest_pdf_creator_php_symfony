@@ -3,8 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\CompanyRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -13,7 +11,7 @@ class Company implements IEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(options: ["unsigned" => true])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -48,18 +46,6 @@ class Company implements IEntity
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $signature = null;
-
-    #[ORM\OneToMany(mappedBy: 'supplier', targetEntity: Invoice::class, orphanRemoval: true)]
-    private Collection $supplierInvoices;
-
-    #[ORM\OneToMany(mappedBy: 'subscriber', targetEntity: Invoice::class, orphanRemoval: true)]
-    private Collection $subscriberInvoices;
-
-    public function __construct()
-    {
-        $this->supplierInvoices = new ArrayCollection();
-        $this->subscriberInvoices = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
@@ -197,63 +183,4 @@ class Company implements IEntity
         return $this;
     }
 
-    /**
-     * @return Collection<int, Invoice>
-     */
-    public function getSupplierInvoices(): Collection
-    {
-        return $this->supplierInvoices;
-    }
-
-    public function addSupplierInvoice(Invoice $supplierInvoice): Company
-    {
-        if (!$this->supplierInvoices->contains($supplierInvoice)) {
-            $this->supplierInvoices->add($supplierInvoice);
-            $supplierInvoice->setSupplier($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSupplierInvoice(Invoice $supplierInvoice): Company
-    {
-        if ($this->supplierInvoices->removeElement($supplierInvoice)) {
-            // set the owning side to null (unless already changed)
-            if ($supplierInvoice->getSupplier() === $this) {
-                $supplierInvoice->setSupplier(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Invoice>
-     */
-    public function getSubscriberInvoices(): Collection
-    {
-        return $this->subscriberInvoices;
-    }
-
-    public function addSubscriberInvoice(Invoice $subscriberInvoice): Company
-    {
-        if (!$this->subscriberInvoices->contains($subscriberInvoice)) {
-            $this->subscriberInvoices->add($subscriberInvoice);
-            $subscriberInvoice->setSubscriber($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSubscriberInvoice(Invoice $subscriberInvoice): Company
-    {
-        if ($this->subscriberInvoices->removeElement($subscriberInvoice)) {
-            // set the owning side to null (unless already changed)
-            if ($subscriberInvoice->getSubscriber() === $this) {
-                $subscriberInvoice->setSubscriber(null);
-            }
-        }
-
-        return $this;
-    }
 }

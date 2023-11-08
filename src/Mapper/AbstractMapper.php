@@ -8,7 +8,7 @@ use AutoMapperPlus\Exception\UnregisteredMappingException;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
-class AbstractMapper implements ICrudMapper
+abstract class AbstractMapper implements ICrudMapper
 {
     /**
      * @param string $dtoType

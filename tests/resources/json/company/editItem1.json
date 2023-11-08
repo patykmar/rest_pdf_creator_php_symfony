@@ -1,0 +1,15 @@
+{
+  "name": "Company 01 name",
+  "address": {
+    "country": "Company 01 country name",
+    "street": "Company 01 street name",
+    "city": "Company 01 city name",
+    "zipCode": "12301"
+  },
+  "companyId": "23456789001",
+  "vatNumber": "12345678901",
+  "bankAccountNumber": "1201-12345678501/1201",
+  "swift": "AIRACZPP12345678901",
+  "iban": "CZ00001234123456789012301",
+  "signature": "CZ000012341234567890123401"
+}

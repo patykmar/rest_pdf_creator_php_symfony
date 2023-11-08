@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Invoice;
 use App\Exceptions\InvalidArgumentException;
+use App\Mapper\InvoiceItemMapper;
 use App\Mapper\InvoiceMapper;
 use App\Model\DataDto\InvoiceDataDto;
 use App\Model\Dto\InvoiceDto;
@@ -18,13 +19,16 @@ use AutoMapperPlus\Exception\UnregisteredMappingException;
  */
 class InvoiceService extends AbstractCrudService
 {
+    const NOT_FOUND_ERROR_MSG = "Invoice with id: %d not found";
+
     public function __construct(
         private readonly InvoiceMapper     $invoiceMapper,
+        private readonly InvoiceItemMapper $invoiceItemMapper,
         private readonly CompanyService    $companyService,
-        private readonly InvoiceRepository $repository,
+        private readonly InvoiceRepository $invoiceRepository,
     )
     {
-        parent::__construct($this->invoiceMapper, $this->repository);
+        parent::__construct($this->invoiceMapper, $this->invoiceRepository, self::NOT_FOUND_ERROR_MSG);
     }
 
     /**
@@ -35,8 +39,18 @@ class InvoiceService extends AbstractCrudService
     public function saveEntity($dto): InvoiceDataDto
     {
         if ($dto instanceof InvoiceDto) {
-            $invoiceDataDto = $this->mapDtoToDataDto($dto);
-            return $this->saveEntityStrict($invoiceDataDto);
+            $supplier = $this->companyService->getOneEntity($dto->getSupplierId());
+            $subscriber = $this->companyService->getOneEntity($dto->getSubscriberId());
+
+            $newInvoice = $this->invoiceMapper->toEntity($dto);
+            $newInvoice
+                ->setSupplier($supplier)
+                ->setSubscriber($subscriber);
+
+            $this->invoiceItemMapper->addRelationWithInvoice($newInvoice->getInvoiceItems(), $newInvoice);
+            $this->invoiceRepository->save($newInvoice);
+            $lastInvoice = $this->repository->findLastEntity();
+            return $this->invoiceMapper->toDto($lastInvoice);
         }
         throw new InvalidArgumentException("Parameter \$dto for new invoice is not valid type");
     }
@@ -44,9 +58,8 @@ class InvoiceService extends AbstractCrudService
     /**
      * @throws UnregisteredMappingException
      */
-    private function saveEntityStrict(InvoiceDataDto $invoiceDataDto): InvoiceDataDto
+    private function saveEntityStrict(Invoice $invoice): InvoiceDataDto
     {
-        $invoice = $this->invoiceMapper->toEntity($invoiceDataDto);
         $this->repository->save($invoice);
         return $this->invoiceMapper->toDto($this->repository->findLastEntity());
     }
@@ -80,10 +93,16 @@ class InvoiceService extends AbstractCrudService
     {
         // cannot use repository:save method. Refactor edit method.
         $this->checkId($id);
-        $invoiceDataDto = $this->mapDtoToDataDto($dto);
-        $invoiceDataDto->setId($id);
+        $companies = $this->companyService->findTwoCompaniesByIds($dto->getSupplierId(), $dto->getSubscriberId());
 
-        return $this->saveEntityStrict($invoiceDataDto);
+        $invoiceFromController = $this->invoiceMapper->toEntity($dto);
+        $invoiceFromController
+            ->setSupplier($companies[$dto->getSupplierId()])
+            ->setSubscriber($companies[$dto->getSubscriberId()]);
+
+        $updatedEntity = $this->mapper->mappingBeforeEditEntity($this->entity, $invoiceFromController);
+        $this->repository->save($updatedEntity);
+        return $this->getOneDto($id);
     }
 
 

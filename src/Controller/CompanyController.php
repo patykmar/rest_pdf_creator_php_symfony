@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Model\Dto\CompanyDto;
 use App\Model\LimitResult;
 use App\Service\CompanyService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
@@ -16,9 +17,11 @@ use Throwable;
 final class CompanyController extends AbstractCrudController
 {
     public function __construct(
-        private readonly CompanyService $companyService
+        private readonly CompanyService    $companyService,
+        protected readonly LoggerInterface $loggerInterface
     )
     {
+        parent::__construct($loggerInterface);
     }
 
     #[Route('', name: 'api_company_fetch_all', methods: IHttpMethod::GET)]
@@ -63,8 +66,12 @@ final class CompanyController extends AbstractCrudController
     #[Route('', name: 'company_controller_new_item', methods: IHttpMethod::POST)]
     public function newItem(#[MapRequestPayload] CompanyDto $companyDto): JsonResponse
     {
-        $savedCompany = $this->companyService->saveEntity($companyDto);
-        return $this->json($savedCompany, Response::HTTP_CREATED);
+        try {
+            $savedCompany = $this->companyService->saveEntity($companyDto);
+            return $this->json($savedCompany, Response::HTTP_CREATED);
+        } catch (Throwable $throwable) {
+            return $this->handleErrorExceptions($throwable);
+        }
     }
 
     #[Route(self::PARAMETER_ID, name: 'company_controller_delete_item', methods: IHttpMethod::DELETE)]

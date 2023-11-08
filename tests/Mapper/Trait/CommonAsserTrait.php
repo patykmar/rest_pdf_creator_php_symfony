@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Mapper;
+namespace App\Tests\Mapper\Trait;
 
 use App\Entity\Company;
 use App\Model\DataDto\InvoiceDataDto;

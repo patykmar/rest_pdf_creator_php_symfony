@@ -65,13 +65,13 @@ class DtoMock
     }
 
     /**
-     * @psalm-return ArrayCollection<InvoiceItemDto>
+     * @psalm-return InvoiceItemDto[]
      */
-    private static function populateInvoiceItemDto(): ArrayCollection
+    private static function populateInvoiceItemDto(): array
     {
-        $returnInvoiceItems = new ArrayCollection();
+        $returnInvoiceItems = array();
         for ($i = 0; $i < self::INVOICE_ITEM_COUNT; $i++) {
-            $returnInvoiceItems->add(self::makeInvoiceItemWithNoVatDto($i));
+            $returnInvoiceItems[] = self::makeInvoiceItemWithNoVatDto($i);
         }
         return $returnInvoiceItems;
     }
@@ -118,7 +118,7 @@ class DtoMock
             ->setVs(self::generateVs($id))
             ->setKs(self::generateKs($id))
             ->setCurrency(self::getCurrency($id))
-            ->setInvoiceItems(self::populateInvoiceItemDto()->toArray());
+            ->setInvoiceItems(self::populateInvoiceItemDto());
     }
 
     public static function makeMinimalInvoice(int $supplierId = 1, int $subscriberId = 2): InvoiceDto

@@ -3,12 +3,12 @@
 namespace App\Service;
 
 use App\Entity\InvoiceItem;
-use App\Mapper\SomeMapper;
+use App\Exceptions\NotImplementException;
+use App\Mapper\InvoiceItemMapper;
 use App\Mapper\InvoiceMapper;
 use App\Model\Dto\InvoiceItemDto;
 use App\Model\LimitResult;
 use App\Repository\InvoiceItemRepository;
-use AutoMapperPlus\Exception\UnregisteredMappingException;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
@@ -20,18 +20,23 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class InvoiceItemService extends AbstractCrudService
 {
+    const NOT_FOUND_ERROR_MSG = "Invoice item with id: %d not found";
+
     public function __construct(
-        protected readonly InvoiceItemRepository $repository,
-        protected readonly SomeMapper $mapper
+        protected readonly InvoiceItemMapper     $invoiceItemMapper,
+        protected readonly InvoiceItemRepository $invoiceItemRepository
     )
     {
-        parent::__construct($this->mapper, $this->repository);
+        parent::__construct(
+            $this->invoiceItemMapper,
+            $this->invoiceItemRepository,
+            self::NOT_FOUND_ERROR_MSG
+        );
     }
 
     /**
      * @param InvoiceItemDto $dto
      * @return InvoiceItemDto
-     * @throws UnregisteredMappingException
      */
     public function saveEntity($dto): InvoiceItemDto
     {
@@ -42,6 +47,6 @@ class InvoiceItemService extends AbstractCrudService
 
     public function editEntity($dto, int $id)
     {
-        // TODO: Implement editEntity() method.
+        throw new NotImplementException("Method editEntity is not implemented yet");
     }
 }

@@ -9,6 +9,8 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Company>
+ * @uses CrudRepositoryTrait<Company>
+ * @implements ICrudRepository<Company>
  *
  * @method Company|null find($id, $lockMode = null, $lockVersion = null)
  * @method Company|null findOneBy(array $criteria, array $orderBy = null)
@@ -23,6 +25,24 @@ class CompanyRepository extends ServiceEntityRepository implements ICrudReposito
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Company::class);
+    }
+
+    /**
+     * @param int $id1
+     * @param int $id2
+     * @return array|null Company[]
+     */
+    public function findTwoCompanies(int $id1, int $id2): array|null
+    {
+        $em = $this->getEntityManager();
+        $dql = "SELECT c FROM App\Entity\Company c WHERE c.id in (:id1, :id2)";
+
+        $query = $em->createQuery($dql)
+            ->setParameter('id1', $id1)
+            ->setParameter('id2', $id2);
+
+        return $query->getResult();
+
     }
 
 //    /**

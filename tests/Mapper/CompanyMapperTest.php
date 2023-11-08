@@ -5,6 +5,7 @@ namespace App\Tests\Mapper;
 use App\DataFixtures\CompanyFixtures;
 use App\Mapper\CompanyMapper;
 use App\Tests\AbstractKernelTestCase;
+use App\Tests\Mapper\Trait\CommonAsserTrait;
 use App\Tests\Mock\Dto\DtoMock;
 use AutoMapperPlus\Exception\UnregisteredMappingException;
 use Doctrine\Common\Collections\ArrayCollection;
