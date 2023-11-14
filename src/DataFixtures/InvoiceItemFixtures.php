@@ -10,7 +10,7 @@ use Doctrine\Persistence\ObjectManager;
 
 class InvoiceItemFixtures extends Fixture implements DependentFixtureInterface
 {
-    const REFERENCE_COUNT = 10;
+    public const REFERENCE_COUNT = 10;
 
     public function load(ObjectManager $manager): void
     {

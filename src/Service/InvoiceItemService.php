@@ -3,13 +3,16 @@
 namespace App\Service;
 
 use App\Entity\InvoiceItem;
+use App\Exceptions\NotFoundException;
 use App\Exceptions\NotImplementException;
 use App\Mapper\InvoiceItemMapper;
 use App\Mapper\InvoiceMapper;
 use App\Model\Dto\InvoiceItemDto;
 use App\Model\LimitResult;
 use App\Repository\InvoiceItemRepository;
+use App\Repository\InvoiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * @extends AbstractCrudService<InvoiceItem, InvoiceItemDto, InvoiceMapper, InvoiceItemRepository>
@@ -24,7 +27,8 @@ class InvoiceItemService extends AbstractCrudService
 
     public function __construct(
         protected readonly InvoiceItemMapper     $invoiceItemMapper,
-        protected readonly InvoiceItemRepository $invoiceItemRepository
+        protected readonly InvoiceItemRepository $invoiceItemRepository,
+        protected readonly InvoiceRepository     $invoiceRepository
     )
     {
         parent::__construct(
@@ -48,5 +52,16 @@ class InvoiceItemService extends AbstractCrudService
     public function editEntity($dto, int $id)
     {
         throw new NotImplementException("Method editEntity is not implemented yet");
+    }
+
+    public function retrieveInvoiceItemsByInvoice(int $id): Collection
+    {
+        $invoice = $this->invoiceRepository->find($id);
+        if (is_null($invoice)) {
+            throw new NotFoundException("Invoice with ID: $id is not found");
+        }
+
+        $invoiceItemsEntity = $this->invoiceItemRepository->findBy(['invoice' => $id]);
+        return $this->invoiceItemMapper->toDtoCollection(new ArrayCollection($invoiceItemsEntity));
     }
 }
