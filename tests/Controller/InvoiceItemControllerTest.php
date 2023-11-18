@@ -57,7 +57,7 @@ class InvoiceItemControllerTest extends AbstractControllerTest
     /**
      * Method test error handling, when Invoice ID doesn't exist
      */
-    public function testFetchAllByInvalidInvoiceId()
+    public function testFetchAllByInvalidInvoiceId(): void
     {
         $this->client->request(IHttpMethod::GET, self::URI . '/invoice/666');
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
@@ -65,11 +65,45 @@ class InvoiceItemControllerTest extends AbstractControllerTest
     }
 
     /**
+     * Method test added new invoice item to exist invoice
+     */
+    public function testNewItemWithValidInvoiceId(): int
+    {
+        $invoiceItemJson = $this->readJsonFileAndValid('/invoice/newInvoiceItem.json');
+        $inputInvoiceItem = $this->jsonValidateAndDeserializeJson(InvoiceItemDto::class, $invoiceItemJson);
+
+        $this->client->request(IHttpMethod::POST, self::URI . '/invoice/1', [], [], [], $invoiceItemJson);
+        $this->assertResponseIsSuccessful();
+
+        /** @var InvoiceItemDto $result */
+        $result = $this->jsonValidateAndDeserializeResponse(InvoiceItemDto::class, $this->client->getResponse());
+
+        $this->assertNotNull($result);
+        $this->assertNotNull($result->getId());
+        $this->assertIsNumeric($result->getId());
+        $this->assertSame($inputInvoiceItem->getVat(), $result->getVat());
+        $this->assertSame($inputInvoiceItem->getItemName(), $result->getItemName());
+        $this->assertSame($inputInvoiceItem->getPrice(), $result->getPrice());
+        $this->assertSame($inputInvoiceItem->getUnitCount(), $result->getUnitCount());
+        return $result->getId();
+    }
+
+    /**
+     * Test error handling for newItem method
+     */
+    public function testNewItemWithInvalidInvoiceId(): void
+    {
+        $invoiceItemJson = $this->readJsonFileAndValid('/invoice/newInvoiceItem.json');
+        $this->client->request(IHttpMethod::POST, self::URI . '/invoice/666', [], [], [], $invoiceItemJson);
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    /**
      * Method test success result of controller method fetchById in this scenario we will use
      * first item of result, which we've received from the method {@link testFetchAllByValidInvoiceId}
      * @depends testFetchAllByValidInvoiceId
      */
-    public function testFetchByValidId(int $invoiceItemId)
+    public function testFetchByValidId(int $invoiceItemId): void
     {
         $this->client->request(IHttpMethod::GET, self::URI . "/$invoiceItemId");
         $this->assertResponseIsSuccessful();
@@ -78,6 +112,26 @@ class InvoiceItemControllerTest extends AbstractControllerTest
 
         $this->assertInstanceOf(InvoiceItemDto::class, $result);
         $this->assertInvoiceItemDtoNotNull($result);
+    }
+
+    public function testFetchByInvalidId(): void
+    {
+        $this->client->request(IHttpMethod::GET, self::URI . "/6666");
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * @depends testNewItemWithValidInvoiceId
+     */
+    public function testDeleteItem(int $id): void
+    {
+        $this->requestDelete($id);
+    }
+
+    public function testDeleteItemWithInvalidId(): void
+    {
+        $this->client->request(IHttpMethod::DELETE, $this->uri . "/6666");
+        $this->assertResponseStatusCodeSame(404);
     }
 
 }

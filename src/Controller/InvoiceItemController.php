@@ -32,18 +32,24 @@ class InvoiceItemController extends AbstractCrudController
         #[MapQueryParameter(filter: FILTER_VALIDATE_INT, options: self::OPTIONS_MIN_RANGE_1)] int $maxItem = 10
     ): JsonResponse
     {
-        return $this->json('', Response::HTTP_METHOD_NOT_ALLOWED);
+        return $this->handleNotImplementMethod();
     }
 
     /**
      * Retrieve all invoice items by invoice ID
-     * @param int $id invoice ID,
+     * @param int $invoiceId
+     * @return JsonResponse
      */
-    #[Route('/invoice/{id}')]
-    public function fetchAllByInvoiceId(int $id): JsonResponse
+    #[Route(
+        '/invoice/{invoiceId}',
+        name: 'invoice_item_controller_fetch_all_items_by_invoice',
+        requirements: self::POSITIVE_INTEGER,
+        methods: IHttpMethod::GET
+    )]
+    public function fetchAllByInvoiceId(int $invoiceId): JsonResponse
     {
         try {
-            $invoiceItems = $this->service->retrieveInvoiceItemsByInvoice($id);
+            $invoiceItems = $this->service->retrieveInvoiceItemsByInvoice($invoiceId);
             return $this->json($invoiceItems);
         } catch (Throwable $e) {
             return $this->handleErrorExceptions($e);
@@ -51,21 +57,24 @@ class InvoiceItemController extends AbstractCrudController
     }
 
     #[Route(
-        "/{invoiceId}",
+        "/invoice/{invoiceId}",
         name: 'invoice_item_controller_new_item',
         requirements: self::POSITIVE_INTEGER,
         methods: IHttpMethod::POST
     )]
     public function newItem(int $invoiceId, #[MapRequestPayload] InvoiceItemDto $invoiceItemDto): JsonResponse
     {
+        try {
+            $invoiceItemResult = $this->service->newInvoiceItem($invoiceId, $invoiceItemDto);
+            return $this->json($invoiceItemResult);
+        } catch (Throwable $throwable) {
+            return $this->handleErrorExceptions($throwable);
+        }
+    }
+
+    public function editItem(int $id, #[MapRequestPayload] InvoiceItemDto $invoiceItemDto)
+    {
         //TODO
-        return $this->json("Method newItem is not implemented", Response::HTTP_NOT_IMPLEMENTED);
-//        try {
-//            $savedCompany = $this->companyService->saveEntity($companyDto);
-//            return $this->json($savedCompany, Response::HTTP_CREATED);
-//        } catch (Throwable $throwable) {
-//            return $this->handleErrorExceptions($throwable);
-//        }
     }
 
     #[Route(self::PARAMETER_ID,
@@ -81,6 +90,12 @@ class InvoiceItemController extends AbstractCrudController
         }
     }
 
+    #[Route(
+        self::PARAMETER_ID,
+        name: 'invoice_item_controller_delete_by_id',
+        requirements: self::POSITIVE_INTEGER,
+        methods: self::DELETE
+    )]
     public function deleteItem(int $id): JsonResponse
     {
         try {
