@@ -69,7 +69,7 @@ class InvoiceItemControllerTest extends AbstractControllerTest
      */
     public function testNewItemWithValidInvoiceId(): int
     {
-        $invoiceItemJson = $this->readJsonFileAndValid('/invoice/newInvoiceItem.json');
+        $invoiceItemJson = $this->readJsonFileAndValid('/invoice/invoiceItemNewItem.json');
         $inputInvoiceItem = $this->jsonValidateAndDeserializeJson(InvoiceItemDto::class, $invoiceItemJson);
 
         $this->client->request(IHttpMethod::POST, self::URI . '/invoice/1', [], [], [], $invoiceItemJson);
@@ -93,7 +93,7 @@ class InvoiceItemControllerTest extends AbstractControllerTest
      */
     public function testNewItemWithInvalidInvoiceId(): void
     {
-        $invoiceItemJson = $this->readJsonFileAndValid('/invoice/newInvoiceItem.json');
+        $invoiceItemJson = $this->readJsonFileAndValid('/invoice/invoiceItemNewItem.json');
         $this->client->request(IHttpMethod::POST, self::URI . '/invoice/666', [], [], [], $invoiceItemJson);
         $this->assertResponseStatusCodeSame(404);
     }
@@ -112,6 +112,32 @@ class InvoiceItemControllerTest extends AbstractControllerTest
 
         $this->assertInstanceOf(InvoiceItemDto::class, $result);
         $this->assertInvoiceItemDtoNotNull($result);
+    }
+
+    /**
+     * @depends testNewItemWithValidInvoiceId
+     */
+    public function testEditItemByValidId(int $id): void
+    {
+        $invoiceItemJson = $this->readJsonFileAndValid('/invoice/invoiceItemEdit.json');
+        /** @var InvoiceItemDto $invoiceItem */
+        $invoiceItem = $this->jsonValidateAndDeserializeJson(InvoiceItemDto::class, $invoiceItemJson);
+
+        $this->client->request(IHttpMethod::PUT, self::URI . "/$id", [], [], [], $invoiceItemJson);
+        $this->assertResponseIsSuccessful();
+
+        /** @var InvoiceItemDto $result */
+        $result = $this->jsonValidateAndDeserializeResponse(InvoiceItemDto::class, $this->client->getResponse());
+        $this->assertInstanceOf(InvoiceItemDto::class, $result);
+
+        $this->assertInvoiceItemDtos($invoiceItem, $result);
+    }
+
+    public function testEditItemByInvalidValidId(): void
+    {
+        $invoiceItemJson = $this->readJsonFileAndValid('/invoice/invoiceItemEdit.json');
+        $this->client->request(IHttpMethod::PUT, self::URI . "/6666", [], [], [], $invoiceItemJson);
+        $this->assertResponseStatusCodeSame(404);
     }
 
     public function testFetchByInvalidId(): void

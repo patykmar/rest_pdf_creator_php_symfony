@@ -48,9 +48,18 @@ class InvoiceItemMapper implements ICrudMapper
         return new ArrayCollection($this->mapper->mapMultiple($entities, InvoiceItemDto::class));
     }
 
-    public function mappingBeforeEditEntity($entityFromDb, $entityFromConsumer)
+    /**
+     * @param InvoiceItem $entityFromDb
+     * @param InvoiceItem $entityFromConsumer
+     * @return InvoiceItem
+     */
+    public function mappingBeforeEditEntity($entityFromDb, $entityFromConsumer): InvoiceItem
     {
-        // TODO: Implement mappingBeforeEditEntity() method.
+        return $entityFromDb
+            ->setVat($entityFromConsumer->getVat())
+            ->setItemName($entityFromConsumer->getItemName())
+            ->setPrice($entityFromConsumer->getPrice())
+            ->setUnitCount($entityFromConsumer->getUnitCount());
     }
 
     /**

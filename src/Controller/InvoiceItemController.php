@@ -72,15 +72,28 @@ class InvoiceItemController extends AbstractCrudController
         }
     }
 
-    public function editItem(int $id, #[MapRequestPayload] InvoiceItemDto $invoiceItemDto)
+    #[Route(
+        self::PARAMETER_ID,
+        name: 'invoice_item_controller_edit',
+        requirements: self::POSITIVE_INTEGER,
+        methods: self::PUT
+    )]
+    public function editItem(int $id, #[MapRequestPayload] InvoiceItemDto $invoiceItemDto): JsonResponse
     {
-        //TODO
+        try {
+            $result = $this->service->editEntity($invoiceItemDto, $id);
+            return $this->json($result);
+        } catch (Throwable $throwable) {
+            return $this->handleErrorExceptions($throwable);
+        }
     }
 
-    #[Route(self::PARAMETER_ID,
+    #[Route(
+        self::PARAMETER_ID,
         name: 'invoice_item_controller_fetch_by_id',
         requirements: self::POSITIVE_INTEGER,
-        methods: self::GET)]
+        methods: self::GET
+    )]
     public function fetchById(int $id): JsonResponse
     {
         try {

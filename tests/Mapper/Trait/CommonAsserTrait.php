@@ -93,4 +93,16 @@ trait CommonAsserTrait
         $this->assertNotNull($sourceInvoiceItemDto->getUnitCount());
     }
 
+    /**
+     * Compare two same data type {@see InvoiceItemDto} if there is same value
+     */
+    public function assertInvoiceItemDtos(InvoiceItemDto $invoiceItemDtoExpected, InvoiceItemDto $invoiceItemDtoResult): void
+    {
+        $this->assertIsNumeric($invoiceItemDtoResult->getId());
+        $this->assertSame($invoiceItemDtoExpected->getVat(), $invoiceItemDtoResult->getVat());
+        $this->assertSame($invoiceItemDtoExpected->getItemName(), $invoiceItemDtoResult->getItemName());
+        $this->assertSame($invoiceItemDtoExpected->getPrice(), $invoiceItemDtoResult->getPrice());
+        $this->assertSame($invoiceItemDtoExpected->getUnitCount(), $invoiceItemDtoResult->getUnitCount());
+    }
+
 }

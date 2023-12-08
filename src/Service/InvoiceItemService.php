@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\InvoiceItem;
 use App\Exceptions\MethodNotAllowedException;
 use App\Exceptions\NotFoundException;
-use App\Exceptions\NotImplementException;
 use App\Mapper\InvoiceItemMapper;
 use App\Mapper\InvoiceMapper;
 use App\Model\Dto\InvoiceItemDto;
@@ -67,11 +66,25 @@ class InvoiceItemService extends AbstractCrudService
         throw new MethodNotAllowedException("Method save entity is not allowed, use newInvoiceItem() instead of");
     }
 
-    public function editEntity($dto, int $id)
+    /**
+     * @param InvoiceItemDto $dto
+     * @param int $id
+     * @return InvoiceItemDto
+     * @throws UnregisteredMappingException
+     */
+    public function editEntity($dto, int $id): InvoiceItemDto
     {
-        throw new NotImplementException("Method editEntity is not implemented yet");
+        $invoiceItemEntityById = $this->getOneEntity($id);
+        $invoiceItemEntityFromDto = $this->mapper->toEntity($dto);
+        $result = $this->invoiceItemMapper->mappingBeforeEditEntity($invoiceItemEntityById, $invoiceItemEntityFromDto);
+        $this->invoiceItemRepository->save($result);
+        return $this->invoiceItemMapper->toDto($this->invoiceItemRepository->findLastEntity());
     }
 
+    /**
+     * @param int $id
+     * @return Collection<InvoiceItemDto>
+     */
     public function retrieveInvoiceItemsByInvoice(int $id): Collection
     {
         $invoice = $this->invoiceRepository->find($id);

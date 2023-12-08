@@ -100,6 +100,8 @@ class InvoiceControllerTest extends AbstractControllerTest
     {
         $this->markTestSkipped("The test will be fixed by new PR");
 
+        //TODO fulfill after develop endpoint with pdf
+
         $repository = $this->createMock(InvoiceRepository::class);
 
         $repository->expects($this->once())
@@ -153,18 +155,6 @@ class InvoiceControllerTest extends AbstractControllerTest
         $this->assertNotNull($companyDto);
         $this->assertCompanyDtoNotNull($companyDto);
         $this->assertSame($companyId, $companyDto->getId());
-    }
-
-    /**
-     * Compare two same data type {@see InvoiceItemDto} if there is same value
-     */
-    public function assertInvoiceItemDtos(InvoiceItemDto $invoiceItemDtoExpected, InvoiceItemDto $invoiceItemDtoResult): void
-    {
-        $this->assertIsNumeric($invoiceItemDtoResult->getId());
-        $this->assertSame($invoiceItemDtoExpected->getVat(), $invoiceItemDtoResult->getVat());
-        $this->assertSame($invoiceItemDtoExpected->getItemName(), $invoiceItemDtoResult->getItemName());
-        $this->assertSame($invoiceItemDtoExpected->getPrice(), $invoiceItemDtoResult->getPrice());
-        $this->assertSame($invoiceItemDtoExpected->getUnitCount(), $invoiceItemDtoResult->getUnitCount());
     }
 
 }
