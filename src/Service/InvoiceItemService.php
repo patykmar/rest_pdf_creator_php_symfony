@@ -3,13 +3,17 @@
 namespace App\Service;
 
 use App\Entity\InvoiceItem;
-use App\Exceptions\NotImplementException;
+use App\Exceptions\MethodNotAllowedException;
+use App\Exceptions\NotFoundException;
 use App\Mapper\InvoiceItemMapper;
 use App\Mapper\InvoiceMapper;
 use App\Model\Dto\InvoiceItemDto;
 use App\Model\LimitResult;
 use App\Repository\InvoiceItemRepository;
+use App\Repository\InvoiceRepository;
+use AutoMapperPlus\Exception\UnregisteredMappingException;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * @extends AbstractCrudService<InvoiceItem, InvoiceItemDto, InvoiceMapper, InvoiceItemRepository>
@@ -24,7 +28,8 @@ class InvoiceItemService extends AbstractCrudService
 
     public function __construct(
         protected readonly InvoiceItemMapper     $invoiceItemMapper,
-        protected readonly InvoiceItemRepository $invoiceItemRepository
+        protected readonly InvoiceItemRepository $invoiceItemRepository,
+        protected readonly InvoiceRepository     $invoiceRepository
     )
     {
         parent::__construct(
@@ -35,18 +40,59 @@ class InvoiceItemService extends AbstractCrudService
     }
 
     /**
+     * @throws UnregisteredMappingException
+     */
+    public function newInvoiceItem(int $invoiceId, InvoiceItemDto $invoiceItemDto): InvoiceItemDto
+    {
+        $invoice = $this->invoiceRepository->find($invoiceId);
+        if (is_null($invoice)) {
+            throw new NotFoundException("Invoice with ID: $invoiceId is not found");
+        }
+
+        $invoiceItemEntity = $this->invoiceItemMapper->toEntity($invoiceItemDto)
+            ->setInvoice($invoice);
+
+        $this->invoiceItemRepository->save($invoiceItemEntity);
+        $lastSaveEntity = $this->invoiceItemRepository->findLastEntity();
+        return $this->invoiceItemMapper->toDto($lastSaveEntity);
+    }
+
+    /**
      * @param InvoiceItemDto $dto
      * @return InvoiceItemDto
      */
     public function saveEntity($dto): InvoiceItemDto
     {
-        $this->repository->save($this->mapper->toEntity($dto));
-        $entity = $this->repository->findLastEntity();
-        return $this->mapper->toDto($entity);
+        throw new MethodNotAllowedException("Method save entity is not allowed, use newInvoiceItem() instead of");
     }
 
-    public function editEntity($dto, int $id)
+    /**
+     * @param InvoiceItemDto $dto
+     * @param int $id
+     * @return InvoiceItemDto
+     * @throws UnregisteredMappingException
+     */
+    public function editEntity($dto, int $id): InvoiceItemDto
     {
-        throw new NotImplementException("Method editEntity is not implemented yet");
+        $invoiceItemEntityById = $this->getOneEntity($id);
+        $invoiceItemEntityFromDto = $this->mapper->toEntity($dto);
+        $result = $this->invoiceItemMapper->mappingBeforeEditEntity($invoiceItemEntityById, $invoiceItemEntityFromDto);
+        $this->invoiceItemRepository->save($result);
+        return $this->invoiceItemMapper->toDto($this->invoiceItemRepository->findLastEntity());
+    }
+
+    /**
+     * @param int $id
+     * @return Collection<InvoiceItemDto>
+     */
+    public function retrieveInvoiceItemsByInvoice(int $id): Collection
+    {
+        $invoice = $this->invoiceRepository->find($id);
+        if (is_null($invoice)) {
+            throw new NotFoundException("Invoice with ID: $id is not found");
+        }
+
+        $invoiceItemsEntity = $this->invoiceItemRepository->findBy(['invoice' => $id]);
+        return $this->invoiceItemMapper->toDtoCollection(new ArrayCollection($invoiceItemsEntity));
     }
 }

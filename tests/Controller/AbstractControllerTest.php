@@ -86,7 +86,7 @@ class AbstractControllerTest extends WebTestCase
         $this->client->request(IHttpMethod::DELETE, $this->uri . "/$id");
         $response = $this->client->getResponse();
         $this->assertNotNull($response);
-        $this->assertSame(Response::HTTP_NO_CONTENT, $response->getStatusCode());
+        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
     }
 
 }
